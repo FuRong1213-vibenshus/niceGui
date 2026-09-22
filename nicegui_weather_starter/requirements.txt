@@ -1,0 +1,6 @@
+nicegui
+plotly
+pandas
+requests
+httpx
+
