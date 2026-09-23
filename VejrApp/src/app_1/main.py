@@ -15,11 +15,11 @@ def make_weather_table() -> pd.DataFrame:
     )
 
 
-def make_temperature_plot(
+def make_weather_plot(
     df: pd.DataFrame,
     parameter: str,
 ) -> go.Figure:
-    """ "
+    """
     Create a graph for the selected weather parameter.
     """
     if parameter == "temperature":
@@ -46,7 +46,7 @@ weather_data = make_weather_table()
 
 
 def update_plot(parameter: str) -> None:
-    plot.figure = make_temperature_plot(weather_data, parameter)
+    plot.figure = make_weather_plot(weather_data, parameter)
     plot.update()
 
 
@@ -58,6 +58,6 @@ with ui.row():
 
     ui.button("Rain", on_click=lambda: update_plot("rain"))
 
-plot = ui.plotly(make_temperature_plot(weather_data, "temperature")).classes("w-full")
+plot = ui.plotly(make_weather_plot(weather_data, "temperature")).classes("w-full")
 
 ui.run()
