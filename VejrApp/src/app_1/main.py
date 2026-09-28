@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from nicegui import ui
 
 
@@ -15,38 +16,48 @@ def make_weather_table() -> pd.DataFrame:
     )
 
 
-def make_weather_plot(
-    df: pd.DataFrame,
-    parameter: str,
-) -> go.Figure:
-    """
-    Create a graph for the selected weather parameter.
-    """
-    if parameter == "temperature":
-        title = "Temperature this week"
-        y_label = "Temperature (°C)"
-    else:
-        title = "Rain this week"
-        y_label = "Rain (mm)"
-
-    return px.line(
-        df,
-        x="day",
-        y=parameter,
-        markers=True,
-        title=title,
-        labels={
-            "day": "Day",
-            parameter: y_label,
-        },
-    )
-
-
 weather_data = make_weather_table()
 
 
-def update_plot(parameter: str) -> None:
-    plot.figure = make_weather_plot(weather_data, parameter)
+def update_plot() -> None:
+    plot.figure.data = ()
+
+    if checkbox_rain.value:
+        fig.add_trace(
+            go.Bar(
+                x=weather_data.day,
+                y=weather_data.rain,
+                name="rain",
+                marker_color="royalblue",
+                opacity=0.3,
+            ),
+            secondary_y=True,
+        )
+    if checkbox_temp.value:
+        fig.add_trace(
+            go.Scatter(
+                x=weather_data.day,
+                y=weather_data.temperature,
+                name="temp",
+                mode="lines+markers",
+            ),
+            secondary_y=False,
+        )
+    fig.update_xaxes(
+        title_text="Day",
+    )
+    fig.update_yaxes(
+        title_text="Temperature (°C)",
+        secondary_y=False,
+        color="red",
+    )
+    fig.update_yaxes(
+        title_text="Rain (mm)",
+        secondary_y=True,
+        color="royalblue",
+        rangemode="tozero",
+    )
+
     plot.update()
 
 
@@ -54,10 +65,11 @@ ui.label("Weather App").classes("text-2xl, font-bold")
 ui.label("Version 1 - UI basis").classes("text-gray-500")
 
 with ui.row():
-    ui.button("Temperature", on_click=lambda: update_plot("temperature"))
+    checkbox_temp = ui.checkbox("Temperature", on_change=update_plot)
 
-    ui.button("Rain", on_click=lambda: update_plot("rain"))
+    checkbox_rain = ui.checkbox("Rain", on_change=update_plot)
 
-plot = ui.plotly(make_weather_plot(weather_data, "temperature")).classes("w-full")
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+plot = ui.plotly(fig).classes("w-full")
 
 ui.run()

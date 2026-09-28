@@ -4,6 +4,28 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
+import json
+from urllib.parse import urlencode
+from urllib.request import urlopen
+
+params = urlencode(
+    {
+        "text": "Copenhagen",
+        "format": "json",
+        "limit": 1,
+        "apiKey": "b011a14a23b547babff0f84259d3c38a",
+    }
+)
+
+url = f"https://api.geoapify.com/v1/geocode/search?{params}"
+
+with urlopen(url) as response:
+    data = json.load(response)
+
+result = data["results"][0]
+print({"latitude": result["lat"], "longitude": result["lon"]})
+
+
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
@@ -13,8 +35,8 @@ openmeteo = openmeteo_requests.Client(session=retry_session)
 # The order of variables in hourly or daily is important to assign them correctly below
 url = "https://api.open-meteo.com/v1/forecast"
 params = {
-    "latitude": 52.52,
-    "longitude": 13.41,
+    "latitude": result["lat"],
+    "longitude": result["lon"],
     "hourly": "temperature_2m",
     "forecast_days": 3,
     "models": "dmi_seamless",

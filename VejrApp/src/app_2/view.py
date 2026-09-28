@@ -1,28 +1,65 @@
 from nicegui import ui
 
-import plotly.express as px
 import plotly.graph_objects as go
-from options import DATE_RANGE, DMI_OBSERVATION_URL, PARAMETERS, STATIONS
+import plotly.express as px
+from options import PARAMETERS, STATIONS
+from viewmodel import WeatherViewModel
+
+vm = WeatherViewModel()
+fig = go.Figure()
+fig.add_trace(go.Scatter(name="forcast"))
+plot = None
 
 
-@ui.refreshable
 def weather_view() -> None:
+
+    global plot
     ui.label("Weather App - Version 2 - MVVM architecture ").classes(
         "text-2xl font-bold"
     )
-    fig = go.Figure()
+    with ui.grid(columns=2).classes("w-full gap-4"):
+        with ui.card().classes("w-full"):
+            ui.label("City Selection")
+            ui.select(
+                options=list(STATIONS),
+                value="Copenhagen",
+                label="Station",
+            ).bind_value_to(vm.state, "city")
+        with ui.card().classes("w-full"):
+            ui.label("Weather Parameter")
+            ui.select(
+                list(PARAMETERS.keys()),
+                value="temperature_2m",
+                label="Parameter",
+            ).bind_value_to(vm.state, "parameter")
+
+    ui.button("Update", on_click=show_plot)
     plot = ui.plotly(fig).classes("w-full h-96")
 
-    with ui.row().classes("items-end"):
-        station_select = ui.select(
-            list(STATIONS.keys()),
-            value="Copenhagen / Koebenhavn",
-            label="Station",
-        )
-        parameter_select = ui.select(
-            list(PARAMETERS.keys()),
-            value="Temperature",
-            label="Parameter",
-        )
 
-        ui.button("Load data", on_click=update_data)
+def update_figure():
+    df = vm.state.temp_forecast
+    fig.update_traces(x=df["date"], y=df["temperature_2m"])
+    if plot is not None:
+        plot.update()
+
+
+def show_plot():
+    try:
+        vm.load_temp_forecast()
+    except Exception as error:
+        ui.notify(
+            f"Could not fetch weather data:{error}",
+            type="negative",
+        )
+        return
+    try:
+        update_figure()
+    except Exception as error:
+        print(repr(error))
+        ui.notify(f"Could not update figure: {error}", type="negative")
+
+
+weather_view()
+
+ui.run()

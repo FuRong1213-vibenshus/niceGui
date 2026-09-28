@@ -20,8 +20,8 @@ def load_weather():
     # TODO: Show vm.error_message if something went wrong.
 
 
-ui.label("Weather App - Version 4").classes("text-2xl font-bold")
-ui.label("This version separates model, service, viewmodel, and view.")
+ui.label("Weather App - Version 2").classes("text-2xl font-bold")
+ui.label("This version separates model(service), viewmodel, and view.")
 
 with ui.row().classes("items-end"):
     station_input = ui.input("Station ID", value=vm.station_id)
@@ -37,4 +37,3 @@ chart = ui.plotly(vm.make_figure()).classes("w-full")
 # TODO: Add a row with min, max, and average values.
 
 ui.run()
-

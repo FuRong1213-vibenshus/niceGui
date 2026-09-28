@@ -63,13 +63,13 @@ Vis static/mock vejr data i NiceGUI og plot med plotly.
 
 ### Indehold
 
-- UI-komponenter 
+- UI-komponenter, kontrol, data elementer 
   -  `ui.label`, `ui.button`, `ui.plotly`
 - Layout med context managers
   -  `ui.row`, ` ui.columns`
-- event handler og callback-funktioner
-  - ui.button(`on_click`)
-- Opdatering af en komponent
+- Actions og Events 
+  - callback-funktioner
+    - ui.button(`on_click`)
 
 
 
@@ -215,12 +215,14 @@ Appen skal som minimum indeholde:
 - Http client, API get 
 - ` @dataclass`
 - ` bind_value`
-- UI refresh 
+- Actions og Events 
+  - Refreshable 
+- MVVM (**M**odel, **V**iew, **V**iewmodel) arkitektur
 
 
 ### Features 
 
-I denne version kan brugeren vælge en by og en vejrparameter, som skal vises i appen. Vejrdata hentes fra Open-Meteos API og omdannes til en DataFrame, før de vises i en opdateret Plotly-graf.
+I denne version kan brugeren vælge en by og en vejrparameter, som skal vises i appen. Vejrdata hentes fra Open-Meteos API og omdannes til en DataFrame, før de vises i en opdateret Plotly-graf (eller matplotlib).
 
 Appen viser en loading-indikator, mens data hentes. Hvis der opstår en fejl, eller hvis API’et ikke returnerer nogen data, vises en passende fejlmeddelelse til brugeren.
 
@@ -238,7 +240,6 @@ Samtidig opdeles programmet efter MVVM-arkitekturen, så datahentning, applikati
 
 ### Indehold 
 
-- MVVM (**M**odel, **V**iew, **V**iewmodel) arkitektur
 
 
 --- 
