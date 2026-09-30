@@ -215,10 +215,9 @@ Appen skal som minimum indeholde:
 - Http client, API get 
 - ` @dataclass`
 - ` bind_value`
-- Actions og Events 
-  - Refreshable 
 - MVVM (**M**odel, **V**iew, **V**iewmodel) arkitektur
-
+- `Global variable `
+- `Error ` og `Exceptions `
 
 ### Features 
 

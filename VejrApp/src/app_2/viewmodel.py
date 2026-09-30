@@ -1,32 +1,47 @@
 from dataclasses import dataclass, field
+from options import PARAMETERS
 from model import fetch_forecast
 import pandas as pd
 
 
 @dataclass
 class WeatherState:
-    city: str = "Copenhagen"
-    parameter: str = "temperature_2m"
-    forecast_days: int = 3
+    station: str = "Copenhagen"
+    parameter: str = "temperature"
+    forecast_days: int = 10
     is_loading: bool = False
     error_message: str = ""
-    temp_forecast: pd.DataFrame = field(default_factory=pd.DataFrame)
-    rain_3day: pd.DataFrame = field(default_factory=pd.DataFrame)
+    hourly_forecast: pd.DataFrame = field(default_factory=pd.DataFrame)
+    daily_forecast: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
 class WeatherViewModel:
     def __init__(self) -> None:
         self.state = WeatherState()
 
-    def load_temp_forecast(self) -> None:
+    def change_station(self, city: str):
+        self.state.station = city
+        self.load_forecast()
+
+    def change_parameter(self, parameter: str):
+        self.state.parameter = parameter
+        self.load_forecast()
+
+    def load_forecast(self) -> None:
         self.state.is_loading = True
         self.state.error_message = ""
 
         try:
-            self.state.temp_forecast = fetch_forecast(
-                address=self.state.city,
-                parameter=self.state.parameter,
+            parameter_id = PARAMETERS[self.state.parameter]
+            hourly, daily = fetch_forecast(
+                address=self.state.station,
+                parameter=parameter_id,
                 forecast_days=self.state.forecast_days,
             )
-        except Exception:
+            self.state.hourly_forecast = hourly
+            self.state.daily_forecast = daily
+        except Exception as error:
+            print(repr(error))
             self.state.error_message = "Vejrdata kunne ikke hentes."
+        finally:
+            self.state.is_loading = False

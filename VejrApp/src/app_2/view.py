@@ -1,65 +1,100 @@
 from nicegui import ui
-
-import plotly.graph_objects as go
+import pandas as pd
 import plotly.express as px
 from options import PARAMETERS, STATIONS
 from viewmodel import WeatherViewModel
 
-vm = WeatherViewModel()
-fig = go.Figure()
-fig.add_trace(go.Scatter(name="forcast"))
-plot = None
-
 
 def weather_view() -> None:
 
-    global plot
+    vm = WeatherViewModel()
     ui.label("Weather App - Version 2 - MVVM architecture ").classes(
         "text-2xl font-bold"
     )
-    with ui.grid(columns=2).classes("w-full gap-4"):
-        with ui.card().classes("w-full"):
-            ui.label("City Selection")
-            ui.select(
-                options=list(STATIONS),
-                value="Copenhagen",
-                label="Station",
-            ).bind_value_to(vm.state, "city")
-        with ui.card().classes("w-full"):
-            ui.label("Weather Parameter")
-            ui.select(
-                list(PARAMETERS.keys()),
-                value="temperature_2m",
-                label="Parameter",
-            ).bind_value_to(vm.state, "parameter")
 
-    ui.button("Update", on_click=show_plot)
-    plot = ui.plotly(fig).classes("w-full h-96")
+    def update_forecast() -> None:
+        vm.load_forecast()
+        weather_figure_3day.refresh()
+        weather_table_10day.refresh()
 
-
-def update_figure():
-    df = vm.state.temp_forecast
-    fig.update_traces(x=df["date"], y=df["temperature_2m"])
-    if plot is not None:
-        plot.update()
-
-
-def show_plot():
-    try:
-        vm.load_temp_forecast()
-    except Exception as error:
-        ui.notify(
-            f"Could not fetch weather data:{error}",
-            type="negative",
+    with ui.card().classes("w-full"):
+        ui.label("City Selection")
+        station_selection = ui.select(
+            options=list(STATIONS.keys()),
+            value=vm.state.station,
+            label="Station",
         )
-        return
-    try:
-        update_figure()
-    except Exception as error:
-        print(repr(error))
-        ui.notify(f"Could not update figure: {error}", type="negative")
+        station_selection.bind_value_to(vm.state, "station")
+        station_selection.on_value_change(update_forecast)
+
+    @ui.refreshable
+    def weather_figure_3day() -> None:
+        if vm.state.error_message:
+            ui.label(vm.state.error_message).classes("text-red-600")
+            return
+        df = vm.state.hourly_forecast
+        start_date = df["date"].min().normalize()
+        end_date = start_date + pd.Timedelta(days=3)
+
+        three_day_df = df[(df["date"] >= start_date) & (df["date"] < end_date)]
+
+        parameter_id = PARAMETERS[vm.state.parameter]
+
+        fig = px.line(
+            three_day_df,
+            x="date",
+            y=parameter_id,
+            markers=True,
+        )
+        ui.plotly(fig).classes("w-full h-96")
+
+    @ui.refreshable
+    def weather_table_10day() -> None:
+        if vm.state.error_message:
+            ui.label(vm.state.error_message).classes("text-red-600")
+            return
+
+        daily_df = vm.state.daily_forecast.copy()
+
+        daily_df["date"] = pd.to_datetime(daily_df["date"]).dt.strftime("%a %d/%m")
+        daily_df = daily_df.rename(
+            columns={
+                "temperature_2m_min": "minimum",
+                "temperature_2m_max": "maximum",
+            }
+        )
+        daily_df["minimum"] = daily_df["minimum"].astype(float).round(1)
+        daily_df["maximum"] = daily_df["maximum"].astype(float).round(1)
+        columns = [
+            {
+                "name": "date",
+                "label": "Day",
+                "field": "date",
+                "align": "left",
+            },
+            {
+                "name": "minimum",
+                "label": "Minimum (°C)",
+                "field": "minimum",
+                "align": "left",
+            },
+            {
+                "name": "maximum",
+                "label": "Maximum (°C)",
+                "field": "maximum",
+                "align": "left",
+            },
+        ]
+        ui.table(
+            columns=columns,
+            rows=daily_df.to_dict("records"),
+            row_key="date",
+        ).classes("w-full")
+
+    vm.load_forecast()
+    weather_figure_3day()
+    weather_table_10day()
 
 
 weather_view()
-
 ui.run()
