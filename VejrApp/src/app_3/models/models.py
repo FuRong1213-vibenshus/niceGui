@@ -8,3 +8,4 @@ PARAMETERS = {
     "rain": "rain",
     "Wind speed": "wind_speed_10m",
 }
+CLIMATE_YEARS = {"min": 1950, "max": 2050}

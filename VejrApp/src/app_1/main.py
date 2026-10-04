@@ -61,7 +61,7 @@ def update_plot() -> None:
     plot.update()
 
 
-ui.label("Weather App").classes("text-2xl, font-bold")
+ui.label("Weather App").classes("text-2xl font-bold")
 ui.label("Version 1 - UI basis").classes("text-gray-500")
 
 with ui.row():

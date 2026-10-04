@@ -1,6 +1,6 @@
 from nicegui import ui
 from app_3.views.forecast import forecast_view
-from app_3.views.history import history_view
+from app_3.views.climate import climate_view
 
 
 def root():
@@ -8,9 +8,10 @@ def root():
         ui.label("Weather app")
     with ui.left_drawer():
         ui.link("Forecast", "/")
-        ui.link("Historic data", "/history")
+        ui.link("Climate", "/climate")
+    ui.query(".nicegui-content").classes("w-full")
+    ui.sub_pages({"/": forecast_view, "/climate": climate_view}).classes("w-full")
 
-    ui.sub_pages({"/": forecast_view, "/history": history_view})
 
-
-ui.run(root, reload=False)
+if __name__ == "__main__":
+    ui.run(root, reload=False)
