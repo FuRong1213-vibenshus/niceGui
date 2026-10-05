@@ -41,29 +41,14 @@ Vejrappen er altså lærerens eksempel. Du skal ikke kopiere den, men bruge den 
 
 Vi bruger PyCharm som editor. Vejledningen gælder både Windows og Mac.
 
-### 1. Åbn projektet
 
-Åbn mappen `VejrApp` i PyCharm med **File → Open**.
-
-PyCharm skal bruge en Python-fortolker til projektet. Hvis PyCharm spørger, om den skal oprette et virtuelt miljø (virtual environment), svarer du ja. Ellers opretter du det selv under **Settings → Project → Python Interpreter → Add Interpreter**. På Mac hedder menuen **PyCharm → Settings**.
-
-Et virtuelt miljø er en mappe med Python og de biblioteker, som netop dette projekt bruger. Mappen hedder `.venv`.
-
-### 2. Åbn terminalen
-
-Åbn PyCharms terminal med knappen **Terminal** nederst til venstre i vinduet. Kommandoerne i denne vejledning skrives i den terminal.
-
-Når det virtuelle miljø er aktivt, står der `(.venv)` forrest på linjen i terminalen. Så hedder kommandoen `python` på både Windows og Mac.
-
-Står der ikke `(.venv)`, er miljøet ikke oprettet endnu. Gå tilbage til trin 1.
-
-### 3. Installer bibliotekerne
+### Installer bibliotekerne
 
 ```text
 python -m pip install nicegui pandas plotly requests openmeteo-requests requests-cache retry-requests
 ```
 
-### 4. Kør lærerens eksempler
+### Kør lærerens eksempler
 
 **Modul 1 og 2** kan startes direkte i PyCharm. Højreklik på filen i projektoversigten, og vælg **Run**:
 
