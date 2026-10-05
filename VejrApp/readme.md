@@ -68,7 +68,6 @@ Stop appen ved at klikke i terminalen og trykke `Ctrl+C` (også på Mac). Skriv 
 
 Du kan også starte et program fra terminalen i stedet for at højreklikke, for eksempel `python src/app_1/main.py`.
 
-Dokumentation, som du kommer til at bruge hele forløbet: https://nicegui.io/documentation
 
 ## Projektet: din egen luftkvalitets-app
 
@@ -218,6 +217,8 @@ with ui.row():
 ui.button("Gem", on_click=ui.notify("Gemt"))
 ```
 
+Tip: en lambda-funktion er en lille funktion uden navn, som skrives på én linje. `lambda: print("Hej")` kalder ikke `print` med det samme, men laver en funktion, der kan kaldes senere. Læs mere i [Pythons tutorial om lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions).
+
 **Øvelse 1.4 – Læs lærerens kode.** Åbn `src/app_1/main.py`, og svar på spørgsmålene:
 
 1. Hvilken funktion kører, når brugeren sætter hak i en checkbox?
@@ -362,6 +363,15 @@ Lagene må kun kende hinanden i én retning:
 ```
 
 View importerer ViewModel. ViewModel importerer Model. Model importerer ingen af de andre. Derfor kan du afprøve `model.py` helt uden at starte appen.
+
+Vil du læse mere om arkitektur og MVVM?
+
+- [Model-View-Controller på dansk Wikipedia](https://da.wikipedia.org/wiki/Model-View-Controller) er en kort introduktion på dansk til MVC, som MVVM bygger videre på.
+- [Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) forklarer princippet bag: hver del af koden har ét ansvar.
+- [Model–view–viewmodel på Wikipedia](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) beskriver de tre lag og historien bag mønstret.
+- [Microsofts guide til MVVM](https://learn.microsoft.com/en-us/dotnet/architecture/maui/mvvm) går mere i dybden. Eksemplerne er skrevet i C#, men idéerne er de samme.
+
+Flere links står under [Materialer](#materialer).
 
 ### Del 1: Data fra et API
 
@@ -1398,9 +1408,24 @@ Tjekliste før aflevering:
 - NiceGUI refreshable: https://nicegui.io/documentation/refreshable
 - NiceGUI sub pages: https://nicegui.io/documentation/sub_pages
 - NiceGUI storage: https://nicegui.io/documentation/storage
+- NiceGUI styling med `.classes()`, `.style()` og `.props()`: https://nicegui.io/documentation/section_styling_appearance
+- Tailwind CSS, sådan virker klasserne i `.classes()`: https://tailwindcss.com/docs/styling-with-utility-classes
+- Tailwind tekststørrelse (`text-2xl`): https://tailwindcss.com/docs/font-size
+- Tailwind farver (`text-gray-500`, `bg-blue-100`): https://tailwindcss.com/docs/colors
+- Tailwind afstand (`p-4`, `m-2`, `gap-4`): https://tailwindcss.com/docs/padding
+- Tailwind bredde og højde (`w-full`, `h-96`): https://tailwindcss.com/docs/width
+- Quasar komponenter, egenskaber til `.props()`: https://quasar.dev/vue-components/button
+- Python lambda-udtryk: https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions
 - Plotly Express: https://plotly.com/python/plotly-express/
 - Requests: https://requests.readthedocs.io/en/latest/user/quickstart/
 - Open-Meteo Forecast API: https://open-meteo.com/en/docs
 - Open-Meteo Air Quality API: https://open-meteo.com/en/docs/air-quality-api
 - MVC-arkitektur: https://openclassrooms.com/en/courses/6900866-write-maintainable-python-code/7009312-structure-an-application-with-the-mvc-design-pattern
 - MVVM-arkitektur: https://nova-application-development.readthedocs.io/projects/mvvm-lib/en/stable/core_concepts/mvvm.html
+- MVC på dansk Wikipedia: https://da.wikipedia.org/wiki/Model-View-Controller
+- Separation of concerns: https://en.wikipedia.org/wiki/Separation_of_concerns
+- MVVM på Wikipedia: https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel
+- Microsofts guide til MVVM (eksempler i C#): https://learn.microsoft.com/en-us/dotnet/architecture/maui/mvvm
+- Martin Fowler om GUI-arkitekturer (for de nysgerrige): https://martinfowler.com/eaaDev/uiArchs.html
+- Struktur i Python-projekter: https://docs.python-guide.org/writing/structure/
+- Repository pattern i Python: https://www.cosmicpython.com/book/chapter_02_repository.html
