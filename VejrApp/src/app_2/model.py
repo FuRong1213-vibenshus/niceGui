@@ -68,7 +68,7 @@ def fetch_forecast(
     params = {
         "latitude": lat,
         "longitude": lon,
-        "hourly": parameter,
+        "hourly": [parameter, "precipitation"],
         "daily": [
             "temperature_2m_max",
             "temperature_2m_min",
@@ -90,6 +90,7 @@ def fetch_forecast(
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
     hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(1).ValuesAsNumpy()
 
     hourly_data = {
         "date": pd.date_range(
@@ -101,6 +102,7 @@ def fetch_forecast(
     }
 
     hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["precipitation"] = hourly_precipitation
 
     hourly_dataframe = pd.DataFrame(data=hourly_data)
 

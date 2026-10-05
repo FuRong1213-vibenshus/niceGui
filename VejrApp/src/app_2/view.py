@@ -15,7 +15,13 @@ def weather_view() -> None:
     def update_forecast() -> None:
         vm.load_forecast()
         weather_figure_3day.refresh()
+        precipitation_figure_3day.refresh()
         weather_table_10day.refresh()
+
+    def first_three_days(df: pd.DataFrame) -> pd.DataFrame:
+        start_date = df["date"].min().normalize()
+        end_date = start_date + pd.Timedelta(days=3)
+        return df[(df["date"] >= start_date) & (df["date"] < end_date)]
 
     with ui.card().classes("w-full"):
         ui.label("City Selection")
@@ -32,11 +38,7 @@ def weather_view() -> None:
         if vm.state.error_message:
             ui.label(vm.state.error_message).classes("text-red-600")
             return
-        df = vm.state.hourly_forecast
-        start_date = df["date"].min().normalize()
-        end_date = start_date + pd.Timedelta(days=3)
-
-        three_day_df = df[(df["date"] >= start_date) & (df["date"] < end_date)]
+        three_day_df = first_three_days(vm.state.hourly_forecast)
 
         parameter_id = PARAMETERS[vm.state.parameter]
 
@@ -45,6 +47,20 @@ def weather_view() -> None:
             x="date",
             y=parameter_id,
             markers=True,
+        )
+        ui.plotly(fig).classes("w-full h-96")
+
+    @ui.refreshable
+    def precipitation_figure_3day() -> None:
+        if vm.state.error_message:
+            return
+        three_day_df = first_three_days(vm.state.hourly_forecast)
+
+        fig = px.bar(
+            three_day_df,
+            x="date",
+            y="precipitation",
+            labels={"precipitation": "precipitation (mm)"},
         )
         ui.plotly(fig).classes("w-full h-96")
 
@@ -93,6 +109,7 @@ def weather_view() -> None:
 
     vm.load_forecast()
     weather_figure_3day()
+    precipitation_figure_3day()
     weather_table_10day()
 
 
