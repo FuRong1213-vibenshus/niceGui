@@ -129,3 +129,4 @@ def fetch_forecast(
 
 if __name__ == "__main__":
     print(fetch_coordinates("Copenhagen"))
+    print(fetch_forecast("Copenhagen", "temperature_2m", 3))

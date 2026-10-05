@@ -292,7 +292,7 @@ De øverste pile peger mod højre og er **funktionskald**: et lag beder det næs
 
 | Lag | Må | Må ikke |
 |---|---|---|
-| **View** | kalde ViewModels metoder og læse dens state | hente data selv. Der står aldrig `fetch_forecast()` eller `requests` i `view.py` |
+| **View** | kalde ViewModels metoder og læse/ændre dens state | hente data selv. Der står aldrig `fetch_forecast()` eller `requests` i `view.py` |
 | **ViewModel** | kalde Models funktioner | bruge `ui.`. Den ved ikke, om data ender i en graf eller en tabel |
 | **Model** | hente data og returnere dem | kalde de andre lag. Den ved ikke, at der findes en app |
 
@@ -316,7 +316,6 @@ Reglen gør, at du ved, hvor du skal lede, når noget skal ændres:
 
 Vil du læse mere om arkitektur og MVVM?
 
-- [Model-View-Controller på dansk Wikipedia](https://da.wikipedia.org/wiki/Model-View-Controller) er en kort introduktion på dansk til MVC, som MVVM bygger videre på.
 - [Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) forklarer princippet bag: hver del af koden har ét ansvar.
 - [Model–view–viewmodel på Wikipedia](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) beskriver de tre lag og historien bag mønstret.
 - [Microsofts guide til MVVM](https://learn.microsoft.com/en-us/dotnet/architecture/maui/mvvm) går mere i dybden. Eksemplerne er skrevet i C#, men idéerne er de samme.
