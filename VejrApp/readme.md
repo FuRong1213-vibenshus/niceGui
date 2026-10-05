@@ -91,6 +91,13 @@ Lav et commit efter hvert trin med en besked som `Trin 2: data fra API`. Så kan
 
 **Mål:** Du kan bygge en lille app med tekst, knapper og en graf, og du kan forklare, hvad en callback-funktion er.
 
+**Fagligt fokus:**
+
+- **Brugerflade som kode:** UI-elementer og layout med `ui.row`, `ui.column` og `ui.card`
+- **Hændelsesstyret programmering:** programmet venter på brugeren, og en callback-funktion bliver kaldt, når der sker noget
+- **Visualisering:** fra data til graf med Plotly
+- **Opdatering af brugerfladen:** en callback ændrer det, brugeren ser
+
 **Lærerens eksempel:** `src/app_1/main.py`
 
 ### Din første app
@@ -330,6 +337,15 @@ Overvej, hvordan `make_co2_plot()` kan ændres, så den modtager navnet på den 
 ## Modul 2: API og MVVM-arkitektur
 
 **Mål:** Du kan hente data fra et API, dele din kode op i Model, View og ViewModel, og du kan forklare, hvordan et valg i brugerfladen bliver til nye data på skærmen.
+
+**Fagligt fokus:**
+
+- **MVVM-arkitektur:** Model, View og ViewModel som tre lag med hver sin opgave
+- **Adskillelse af ansvar (separation of concerns):** hvert stykke kode har ét ansvar, så en ændring ét sted ikke ødelægger noget et andet sted
+- **Interaktion mellem systemer:** data fra et API med HTTP og JSON, og modellen som en funktion med en aftale
+- **Single source of truth (SSOT):** hver oplysning har ét hjem i state, og alt andet beregnes ud fra den
+- **State og binding:** state som `@dataclass`, og forskellen på binding og event-handler
+- **Robusthed:** `@ui.refreshable` og fejlhåndtering med `try`/`except`/`finally`, hvor hvert lag har sin opgave ved fejl
 
 **Lærerens eksempel:** `src/app_2/`
 
@@ -919,6 +935,13 @@ Krav til trin 4:
 
 **Mål:** Du kan dele et program op i moduler og pakker og importere mellem dem. Du kan bygge en app med flere sider og en fælles menu, hvor hver side har sit eget View og sin egen ViewModel.
 
+**Fagligt fokus:**
+
+- **Modularisering:** et program delt op i moduler og pakker, og hvad der sker ved en `import`
+- **Afhængigheder mellem lag:** importer følger MVVM-lagene, så View kender ViewModel, og ViewModel kender Model, men ikke omvendt
+- **Navigation:** flere sider i samme app med en fælles ramme (`ui.sub_pages`)
+- **Arkitektur, der skalerer:** MVVM med flere sider, hvor hver side har sit eget View og sin egen ViewModel
+
 **Lærerens eksempel:** `src/app_3/`
 
 Modulet har to dele. Først lærer du, hvordan Python-kode organiseres i mapper. Derefter bruger du strukturen til at bygge en app med flere sider.
@@ -1264,6 +1287,13 @@ Krav til del B:
 ## Modul 4: Udvidelse
 
 **Mål:** Du kan få din app til at huske data, og du kan forklare, hvorfor adgangen til gemte data samles ét sted.
+
+**Fagligt fokus:**
+
+- **Data persistence:** data, der overlever en genindlæsning og en genstart af appen
+- **NiceGUI storage:** forskellen på `app.storage.user` og `app.storage.general`
+- **Repository pattern:** al læsning og skrivning af gemte data samles i én klasse
+- **Abstraktion:** resten af appen kender metoderne, men ikke hvor data bliver gemt, så lageret kan skiftes ud
 
 ### Data persistence
 
