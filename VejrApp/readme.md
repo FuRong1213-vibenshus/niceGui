@@ -92,9 +92,9 @@ Du når dertil gennem seks projekttrin. Opgaverne, kravene til hvert trin og kra
 **Fagligt fokus:**
 
 - **Brugerflade som kode:** UI-elementer og layout med `ui.row`, `ui.column` og `ui.card`
-- **Hændelsesstyret programmering:** programmet venter på brugeren, og en callback-funktion bliver kaldt, når der sker noget
+- **Event-handleren programmering:** programmet venter på brugeren, og en callback-funktion bliver kaldt, når der sker noget
 - **Visualisering:** fra data til graf med Plotly
-- **Opdatering af brugerfladen:** en callback ændrer det, brugeren ser
+- **Opdatering af brugerfladen:** en callback 
 
 **Lærerens eksempel:** `src/app_1/main.py`
 
