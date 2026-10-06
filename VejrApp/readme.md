@@ -45,7 +45,7 @@ Vi bruger PyCharm som editor. Vejledningen gælder både Windows og Mac.
 ### Installer bibliotekerne
 
 ```text
-python -m pip install nicegui pandas plotly requests openmeteo-requests requests-cache retry-requests
+python -m pip install nicegui pandas plotly requests requests-cache
 ```
 
 ### Kør lærerens eksempler
@@ -222,7 +222,7 @@ with ui.row():
 ui.button("Gem", on_click=ui.notify("Gemt"))
 ```
 
-Tip: en lambda-funktion er en lille funktion uden navn, som skrives på én linje. `lambda: print("Hej")` kalder ikke `print` med det samme, men laver en funktion, der kan kaldes senere. Læs mere i [Pythons tutorial om lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions).
+Tip: en lambda-funktion er en lille funktion uden navn, som skrives på én linje. `lambda: print("Hej")` kalder ikke `print` med det samme, men laver en funktion, der kan kaldes senere. Læs mere i [Pythons tutorial om lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions) og [Python lambda](https://www.w3schools.com/python/python_lambda.asp).
 
 **Øvelse 1.4 – Læs lærerens kode.** Åbn `src/app_1/main.py`, og svar på spørgsmålene:
 
@@ -330,18 +330,18 @@ Flere links står under [Materialer](#materialer).
 - Et **API** er en aftale om, hvilke data du kan bede en server om, og hvordan du skal spørge.
 - **JSON** er det tekstformat, som svaret kommer i. I Python bliver JSON til dictionaries og lister.
 
-En GET-forespørgsel består af en adresse og nogle parametre:
+En GET-forespørgsel består af en adresse og nogle parametre. Her spørger vi Open-Meteos geocoding API om koordinaterne til en by:
 
 ```python
 import requests
 
-URL = "https://api.open-meteo.com/v1/forecast"
+URL = "https://geocoding-api.open-meteo.com/v1/search"
 params = {
-    "latitude": 55.68,
-    "longitude": 12.57,
-    "hourly": "temperature_2m",
-    "forecast_days": 3,
-    "timezone": "Europe/Copenhagen",
+    "name": "Copenhagen",
+    "count": 1,
+    "language": "en",
+    "format": "json",
+    "countryCode": "DK",
 }
 
 response = requests.get(URL, params=params, timeout=10)
@@ -359,6 +359,35 @@ print(data.keys())
 | 400 | Din forespørgsel er forkert, fx en ugyldig parameter |
 | 404 | Adressen findes ikke |
 | 500 | Serveren har en fejl |
+
+Svaret indeholder en liste under nøglen `"results"`. Hvert element er en dictionary med oplysninger om et sted:
+
+```python
+location = data["results"][0]
+print(location["name"], location["latitude"], location["longitude"])
+```
+
+Det er præcis det, `fetch_coordinates()` i `src/app_2/model.py` gør.
+
+#### Vejrdata på samme måde
+
+Vejrdata hentes med præcis samme opskrift. Kun adressen og parametrene er anderledes:
+
+```python
+URL = "https://api.open-meteo.com/v1/forecast"
+params = {
+    "latitude": 55.68,
+    "longitude": 12.57,
+    "hourly": ["temperature_2m", "precipitation"],
+    "forecast_days": 3,
+    "timezone": "Europe/Copenhagen",
+}
+
+response = requests.get(URL, params=params, timeout=10)
+response.raise_for_status()
+data = response.json()
+print(data.keys())
+```
 
 #### Fra JSON til DataFrame
 
@@ -387,15 +416,15 @@ def fetch_forecast(latitude: float, longitude: float) -> pd.DataFrame:
 
 Der må ikke stå `ui.` noget sted i modellen.
 
-I `src/app_2/model.py` kan du se lærerens version. Den bruger biblioteket `openmeteo_requests`, som er en færdig klient til Open-Meteo. Princippet er det samme: en forespørgsel med parametre ind, DataFrames ud. Filen indeholder også `fetch_coordinates()`, som slår en bys koordinater op.
+I `src/app_2/model.py` kan du se lærerens version. `fetch_coordinates()` slår byens koordinater op, og `fetch_forecast()` bruger dem til at hente vejrdata. Begge funktioner følger opskriften ovenfor.
 
 #### Øvelser til del 1
 
-**Øvelse 2.1 – Undersøg et svar.** Kør GET-eksemplet ovenfor i en ny fil. Udskriv `data["hourly_units"]`. Hvilken enhed har temperaturen?
+**Øvelse 2.1 – Undersøg et svar.** Kør det første GET-eksempel i en ny fil. Udskriv `data["results"][0]`. Hvilke oplysninger indeholder svaret ud over koordinaterne?
 
-**Øvelse 2.2 – Fremprovokér en fejl.** Sæt `"latitude"` til `999`, og fjern linjen med `raise_for_status()`. Udskriv `response.status_code` og `response.text`. Sæt derefter linjen ind igen. Hvad er forskellen?
+**Øvelse 2.2 – Fremprovokér en fejl.** Sæt `"count"` til `999`, og fjern linjen med `raise_for_status()`. Udskriv `response.status_code` og `response.text`. Sæt derefter linjen ind igen. Hvad er forskellen?
 
-**Øvelse 2.3 – En ny parameter.** Ændr forespørgslen, så den også henter `wind_speed_10m`. Hvor mange kolonner får din DataFrame nu?
+**Øvelse 2.3 – En ny parameter.** Kør eksemplet med vejrdata, og udskriv `data["hourly_units"]`. Hvilken enhed har temperaturen? Ændr derefter forespørgslen, så den også henter `wind_speed_10m`. Hvor mange kolonner får din DataFrame nu?
 
 **Øvelse 2.4 – Læs lærerens kode.** Åbn `src/app_2/model.py`:
 

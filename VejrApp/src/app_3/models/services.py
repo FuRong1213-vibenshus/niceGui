@@ -1,10 +1,6 @@
 import pandas as pd
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-
-
 import requests
+import requests_cache
 
 
 def fetch_coordinates(address: str) -> tuple[float, float]:
@@ -56,12 +52,6 @@ def fetch_forecast(
     parameter: str,
     forecast_days: int,
 ):
-
-    # Make sure all required weather variables are listed here
-    # The order of variables in hourly or daily is important to assign them correctly below
-    cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    openmeteo = openmeteo_requests.Client(session=retry_session)
     lat, lon = fetch_coordinates(address=address)
 
     url = "https://api.open-meteo.com/v1/forecast"
@@ -79,61 +69,28 @@ def fetch_forecast(
     }
     print("waiting for response", flush=True)
 
-    responses = openmeteo.weather_api(
+    response = requests.get(
         url,
         params=params,
         timeout=10,
     )
+    response.raise_for_status()
     print("Response received", flush=True)
-    response = responses[0]
-    # Process first location. Add a for-loop for multiple locations or weather models
-    # Process hourly data. The order of variables needs to be the same as requested.
-    hourly = response.Hourly()
-    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    data = response.json()
 
-    hourly_data = {
-        "date": pd.date_range(
-            start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-            end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=hourly.Interval()),
-            inclusive="left",
-        )
-    }
+    # Each key in data["hourly"] is a list, so it becomes a column in the DataFrame.
+    hourly_dataframe = pd.DataFrame(data["hourly"])
+    hourly_dataframe = hourly_dataframe.rename(columns={"time": "date"})
+    hourly_dataframe["date"] = pd.to_datetime(hourly_dataframe["date"])
 
-    hourly_data["temperature_2m"] = hourly_temperature_2m
+    daily_dataframe = pd.DataFrame(data["daily"])
+    daily_dataframe = daily_dataframe.rename(columns={"time": "date"})
+    daily_dataframe["date"] = pd.to_datetime(daily_dataframe["date"])
 
-    hourly_dataframe = pd.DataFrame(data=hourly_data)
-
-    # Process daily data. The order of variables needs to be the same as requested.
-    daily = response.Daily()
-    daily_temperature_2m_max = daily.Variables(0).ValuesAsNumpy()
-    daily_temperature_2m_min = daily.Variables(1).ValuesAsNumpy()
-
-    daily_data = {
-        "date": pd.date_range(
-            start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-            end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=daily.Interval()),
-            inclusive="left",
-        )
-    }
-
-    daily_data["temperature_2m_max"] = daily_temperature_2m_max
-    daily_data["temperature_2m_min"] = daily_temperature_2m_min
-
-    daily_dataframe = pd.DataFrame(data=daily_data)
     return hourly_dataframe, daily_dataframe
 
 
 def fetch_climate(year_range: dict):
-
-    # Setup the Open-Meteo API client with cache and retry on error
-    cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
-    openmeteo = openmeteo_requests.Client(session=retry_session)
-
-    # Make sure all required weather variables are listed here
-    # The order of variables in hourly or daily is important to assign them correctly below
     url = "https://climate-api.open-meteo.com/v1/climate"
     start_year = year_range["min"]
     end_year = year_range["max"]
@@ -152,40 +109,22 @@ def fetch_climate(year_range: dict):
             "precipitation_sum",
         ],
     }
+    # 100 years of daily data is a large request, and Open-Meteo limits how many of
+    # those we may send. The cached session saves the answer in a local file for an
+    # hour, so only the first call goes to the server. It is used exactly like requests.
+    session = requests_cache.CachedSession(".cache", expire_after=3600)
+
     # (connect, read) timeout: without it the request can hang if the server is unreachable
-    responses = openmeteo.weather_api(
+    response = session.get(
         url,
         params=params,
         timeout=(5, 30),
     )
-    response = responses[0]
-    # Process 1 location and 2 models
-    print(f"\nCoordinates: {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation: {response.Elevation()} m asl")
-    print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
-    print(f"Model Nº: {response.Model()}")
+    response.raise_for_status()
+    data = response.json()
 
-    # Process daily data. The order of variables needs to be the same as requested.
-    daily = response.Daily()
-    daily_temperature_2m_max = daily.Variables(0).ValuesAsNumpy()
-    daily_temperature_2m_mean = daily.Variables(1).ValuesAsNumpy()
-    daily_temperature_2m_min = daily.Variables(2).ValuesAsNumpy()
-    daily_rain_sum = daily.Variables(3).ValuesAsNumpy()
-    daily_precipitation_sum = daily.Variables(4).ValuesAsNumpy()
+    daily_dataframe = pd.DataFrame(data["daily"])
+    daily_dataframe = daily_dataframe.rename(columns={"time": "date"})
+    daily_dataframe["date"] = pd.to_datetime(daily_dataframe["date"])
 
-    daily_data = {
-        "date": pd.date_range(
-            start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-            end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
-            freq=pd.Timedelta(seconds=daily.Interval()),
-            inclusive="left",
-        )
-    }
-
-    daily_data["temperature_2m_max"] = daily_temperature_2m_max
-    daily_data["temperature_2m_mean"] = daily_temperature_2m_mean
-    daily_data["temperature_2m_min"] = daily_temperature_2m_min
-    daily_data["rain_sum"] = daily_rain_sum
-    daily_data["precipitation_sum"] = daily_precipitation_sum
-
-    return pd.DataFrame(data=daily_data)
+    return daily_dataframe
