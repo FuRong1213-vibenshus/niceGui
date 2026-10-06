@@ -130,14 +130,16 @@ Nu skal din app vise rigtige data. Brug Open-Meteos Air Quality API:
 
 - Adresse: `https://air-quality-api.open-meteo.com/v1/air-quality`
 - Dokumentation: https://open-meteo.com/en/docs/air-quality-api
-- Parametre, du skal bruge under `hourly`: `carbon_dioxide` og `european_aqi`
+- Parametre, du skal bruge under `hourly`: `carbon_dioxide`, `european_aqi` og `nitrogen_dioxide`
+
+NO₂ (kvælstofdioxid) kommer især fra trafik og angives i μg/m³. Det er den parameter, hvor forskellen mellem by og land er størst.
 
 ### Krav til trin 2
 
 - [ ] Projektet har en fil `model.py` med en funktion `fetch_air_quality(latitude, longitude)`, som returnerer en DataFrame.
-- [ ] DataFramen har kolonnerne `date`, `carbon_dioxide` og `european_aqi`, og `date` er en rigtig dato-kolonne.
+- [ ] DataFramen har kolonnerne `date`, `carbon_dioxide`, `european_aqi` og `nitrogen_dioxide`, og `date` er en rigtig dato-kolonne.
 - [ ] `model.py` indeholder ingen NiceGUI-kode og kan køres alene med `python model.py`, så de første rækker udskrives.
-- [ ] Projektet har en fil `options.py` med en dictionary `STATIONS` med mindst tre byer og deres koordinater.
+- [ ] Projektet har en fil `options.py` med en dictionary `STATIONS` med mindst seks europæiske byer og deres koordinater. Mindst to af byerne ligger i Danmark, og mindst tre ligger i andre lande.
 - [ ] Appen fra trin 1 viser nu de hentede data i stedet for de kunstige.
 
 **Vis din makker:** et kald af `fetch_air_quality()` uden NiceGUI og de første rækker af resultatet.
@@ -156,11 +158,11 @@ Hører til [Modul 2, del 2: State, binding og events](readme.md#del-2-state-bind
 - [ ] `viewmodel.py` indeholder ingen NiceGUI-kode.
 - [ ] Projektet har en fil `view.py`, som opretter alle UI-elementer.
 - [ ] Brugeren kan vælge by i et `ui.select`, som er bundet til state.
-- [ ] Brugeren kan vælge mellem CO₂ og AQI, og valget er bundet til state.
+- [ ] Brugeren kan vælge mellem CO₂, AQI og NO₂, og valget er bundet til state.
 - [ ] Der er ingen globale variable, der gemmer den samme oplysning som state.
 - [ ] Grafens titel og enhed passer til den valgte parameter.
 
-**Undersøg:** Kræver et skift mellem CO₂ og AQI en ny forespørgsel, eller er data allerede hentet?
+**Undersøg:** Kræver et skift mellem CO₂, AQI og NO₂ en ny forespørgsel, eller er data allerede hentet?
 
 ---
 
@@ -236,6 +238,13 @@ Din app skal nu have mindst to sider. Den første er den, du allerede har bygget
 
 **Ekstra:** Tilføj en tredje side, der sammenligner to byer i samme graf.
 
+**Ekstra:** Tilføj en side med et kort over Europa, hvor hver by i `STATIONS` er en markør, og markørens farve viser den aktuelle værdi af den valgte parameter.
+
+- API'et kan modtage flere koordinater i samme forespørgsel, adskilt med komma. Svaret er så en liste med ét element pr. by.
+- Brug `current` i stedet for `hourly` for at få den aktuelle værdi.
+- Skriv en ny funktion i modellaget, som returnerer en DataFrame med én række pr. by: navn, breddegrad, længdegrad og værdier.
+- Tegn kortet med `px.scatter_geo` og `scope="europe"`: https://plotly.com/python/scatter-plots-on-maps/
+
 ---
 
 ## Trin 6: Appen gemmer brugerens valg
@@ -251,7 +260,7 @@ Hører til [Modul 4: Udvidelse](readme.md#modul-4-udvidelse).
 - [ ] Hverken View eller ViewModel bruger `app.storage` direkte.
 - [ ] `.nicegui` står i `.gitignore`.
 
-**Ekstra:** Lad brugeren skrive navnet på en vilkårlig dansk by i stedet for at vælge fra en fast liste. Brug Open-Meteos geocoding API til at finde koordinaterne, ligesom `fetch_coordinates()` i lærerens `model.py`, og vis en fejlbesked, hvis byen ikke findes.
+**Ekstra:** Lad brugeren skrive navnet på en vilkårlig by i stedet for at vælge fra en fast liste. Brug Open-Meteos geocoding API til at finde koordinaterne, ligesom `fetch_coordinates()` i lærerens `model.py`, og vis en fejlbesked, hvis byen ikke findes.
 
 ---
 

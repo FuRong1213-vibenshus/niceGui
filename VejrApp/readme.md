@@ -71,7 +71,7 @@ Du kan også starte et program fra terminalen i stedet for at højreklikke, for 
 
 ## Projektet: din egen luftkvalitets-app
 
-Du skal bygge en app, der viser CO₂-koncentration og luftkvalitet (AQI) for danske byer. Data kommer fra Open-Meteos Air Quality API, som er gratis og ikke kræver en nøgle.
+Du skal bygge en app, der viser CO₂-koncentration, luftkvalitet (AQI) og NO₂ for europæiske byer. Data kommer fra Open-Meteos Air Quality API, som er gratis og ikke kræver en api-nøgle.
 
 Når forløbet er slut, kan din app:
 
