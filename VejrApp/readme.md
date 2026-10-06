@@ -21,7 +21,7 @@ Vejrappen er altså lærerens eksempel. Du skal ikke kopiere den, men bruge den 
 | Uge | Modul | Nyt stof | Projekttrin |
 |---|---|---|---|
 | 1 | [Modul 1: NiceGUI basis](#modul-1-nicegui-basis) | UI-elementer, layout, callbacks, Plotly | [Trin 1: app med kunstige data](aflevering.md#trin-1-app-med-kunstige-data) |
-| 2 | [Modul 2, del 1: Data fra et API](#del-1-data-fra-et-api) | HTTP, API, JSON, DataFrame, MVVM-lagene | [Trin 2: rigtige data](aflevering.md#trin-2-rigtige-data) |
+| 2 | [Modul 2, del 1: Data fra et API](#del-1-data-fra-et-api) | HTTP, API, JSON, MVVM-lagene | [Trin 2: rigtige data](aflevering.md#trin-2-rigtige-data) |
 | 2-3 | [Modul 2, del 2: State, binding og events](#del-2-state-binding-og-events) | `@dataclass`, single source of truth, ViewModel, `bind_value` | [Trin 3: state og valg](aflevering.md#trin-3-state-og-valg) |
 | 3 | [Modul 2, del 3: Refresh og fejlhåndtering](#del-3-refresh-og-fejlhåndtering) | `@ui.refreshable`, `try`/`except`/`finally` | [Trin 4: robust app](aflevering.md#trin-4-en-robust-app) |
 | 4 | [Modul 3: Pakker og navigation](#modul-3-pakker-og-navigation) | Moduler, pakker, import, flere sider, header, menu | [Trin 5: pakke og flere sider](aflevering.md#trin-5-pakke-og-flere-sider) |
