@@ -77,7 +77,7 @@ def fetch_forecast(
     print("Response received", flush=True)
     data = response.json()
     print(data)
-    # Each key in data["hourly"] is a list, so it becomes a column in the DataFrame.
+    # Each item in data["hourly"] is a list, so it becomes a column in the DataFrame.
     hourly_dataframe = pd.DataFrame(data["hourly"])
     hourly_dataframe = hourly_dataframe.rename(columns={"time": "date"})
     hourly_dataframe["date"] = pd.to_datetime(hourly_dataframe["date"])
