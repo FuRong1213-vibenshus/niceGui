@@ -1,0 +1,113 @@
+---
+title: "Modul 4: Udvidelse"
+---
+
+**Mål:** Du kan få din app til at huske data, og du kan forklare, hvorfor adgangen til gemte data samles ét sted.
+
+**Fagligt fokus:**
+
+- **Data persistence:** data, der overlever en genindlæsning og en genstart af appen
+- **NiceGUI storage:** forskellen på `app.storage.user` og `app.storage.general`
+- **Repository pattern:** al læsning og skrivning af gemte data samles i én klasse
+- **Abstraktion:** resten af appen kender metoderne, men ikke hvor data bliver gemt, så lageret kan skiftes ud
+
+## Data persistence
+
+Alt, der ligger i en variabel eller i state, forsvinder, når siden genindlæses, eller appen genstartes. Data persistence betyder, at data overlever. Det kræver, at de bliver gemt et sted uden for programmets hukommelse, for eksempel i en fil eller en database.
+
+## NiceGUI storage
+
+NiceGUI har et indbygget lager, som opfører sig som en dictionary og automatisk bliver gemt i en fil.
+
+| Lager | Hvem deler data? | Bruges til |
+|---|---|---|
+| `app.storage.user` | Én bruger (én browser) | Brugerens egne valg, fx favoritby |
+| `app.storage.general` | Alle brugere | Fælles data for hele appen |
+
+```python
+from nicegui import app, ui
+
+def root() -> None:
+    visits = app.storage.user.get("visits", 0) + 1
+    app.storage.user["visits"] = visits
+    ui.label(f"Du har besøgt siden {visits} gange")
+
+ui.run(root, storage_secret="skriv-din-egen-hemmelige-tekst")
+```
+
+`app.storage.user` kræver, at du giver `ui.run` en `storage_secret`. Den bruges til at beskytte den cookie, der genkender browseren.
+
+Storage kan også bindes direkte til et element, ligesom state:
+
+```python
+ui.select(["Copenhagen", "Aarhus", "Odense"], label="By").bind_value(
+    app.storage.user, "station"
+)
+```
+
+NiceGUI gemmer data i mappen `.nicegui`. Tilføj den til din `.gitignore`, så brugerdata ikke ender på GitHub.
+
+## Repository pattern
+
+Hvis `app.storage.user[...]` står spredt ud over alle Views og ViewModels, får du samme problem som med globale variable: ingen har overblik, og hvis du en dag vil gemme i en database i stedet, skal du rette alle steder.
+
+Et **repository** er en klasse, der samler al læsning og skrivning af én slags data. Resten af appen kalder dens metoder og behøver ikke vide, hvor data bliver gemt.
+
+```python
+from nicegui import app
+
+class FavoriteRepository:
+    """Det eneste sted i appen, der ved, hvor favoritterne gemmes."""
+
+    KEY = "favorites"
+
+    def get_all(self) -> list[str]:
+        return list(app.storage.user.get(self.KEY, []))
+
+    def add(self, city: str) -> None:
+        favorites = self.get_all()
+        if city not in favorites:
+            favorites.append(city)
+            app.storage.user[self.KEY] = favorites
+
+    def remove(self, city: str) -> None:
+        favorites = self.get_all()
+        if city in favorites:
+            favorites.remove(city)
+            app.storage.user[self.KEY] = favorites
+```
+
+Repository hører til i modellaget, for eksempel i `models/repository.py`. ViewModel bruger det sådan her:
+
+```python
+class ForecastViewModel:
+    def __init__(self) -> None:
+        self.state = WeatherState()
+        self.favorites = FavoriteRepository()
+
+    def save_current_station(self) -> None:
+        self.favorites.add(self.state.station)
+```
+
+Det er det samme princip som resten af forløbet: hvert stykke kode har ét ansvar, og hver oplysning har ét hjem.
+
+```text
+View  ──►  ViewModel  ──►  services.py     ──►  API på internettet
+                      ──►  repository.py   ──►  NiceGUI storage
+```
+
+## Øvelser til modul 4
+
+**Øvelse 4.1 – Besøgstæller.** Kør eksemplet med `visits`. Genindlæs siden, og genstart appen. Åbn derefter appen i et privat browservindue. Hvad sker der med tallet? Skift til `app.storage.general`, og prøv igen.
+
+**Øvelse 4.2 – Find filen.** Find mappen `.nicegui` i dit projekt, og åbn filen i den. Hvilket format er data gemt i?
+
+**Øvelse 4.3 – Et notat, der bliver.** Lav et `ui.textarea`, som er bundet til `app.storage.user`. Skriv noget, genstart appen, og kontrollér, at teksten stadig er der.
+
+**Øvelse 4.4 – Løs problemet fra øvelse 3.8.** Brug storage til at få tælleren til at huske sit tal, når brugeren skifter side.
+
+**Øvelse 4.5 – Skift lager.** Skriv en ny version af `FavoriteRepository`, som gemmer favoritterne i en JSON-fil i stedet for i NiceGUI storage. Metoderne skal have de samme navne. Hvor meget kode uden for klassen skal ændres, for at appen kan bruge den nye version?
+
+## Projekt trin 6: Appen gemmer brugerens valg
+
+Opgaver og krav til trin 6 står under [Aflevering](aflevering.qmd#trin-6-appen-gemmer-brugerens-valg).

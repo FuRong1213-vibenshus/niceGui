@@ -1,0 +1,51 @@
+project:
+  type: website
+
+lang: da
+
+website:
+  title: "VejrApp"
+  description: "Webapps med NiceGUI og MVVM"
+  repo-url: https://github.com/FuRong1213-vibenshus/niceGui
+  page-navigation: true
+  back-to-top-navigation: true
+  search: true
+  sidebar:
+    title: "VejrApp"
+    style: docked
+    contents:
+      - text: "Forside"
+        href: index.qmd
+      - text: "Kom i gang"
+        href: kom-i-gang.qmd
+      - text: "Modul 1: NiceGUI basis"
+        href: modul-1.qmd
+      - section: "Modul 2: API og MVVM"
+        href: modul-2.qmd
+        contents:
+          - text: "Del 1: Data fra et API"
+            href: modul-2-del-1.qmd
+          - text: "Del 2: State, binding og events"
+            href: modul-2-del-2.qmd
+          - text: "Del 3: Refresh og fejlhåndtering"
+            href: modul-2-del-3.qmd
+      - text: "Modul 3: Pakker og navigation"
+        href: modul-3.qmd
+      - text: "Modul 4: Udvidelse"
+        href: modul-4.qmd
+      - text: "---"
+      - text: "Aflevering"
+        href: aflevering.qmd
+      - text: "Materialer"
+        href: materialer.qmd
+
+format:
+  html:
+    from: markdown+autolink_bare_uris
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    link-external-newwindow: true

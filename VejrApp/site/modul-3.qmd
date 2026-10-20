@@ -1,0 +1,301 @@
+---
+title: "Modul 3: Pakker og navigation"
+---
+
+**Mål:** Du kan dele et program op i moduler og pakker og importere mellem dem. Du kan bygge en app med flere sider og en fælles menu, hvor hver side har sit eget View og sin egen ViewModel.
+
+**Fagligt fokus:**
+
+- **Modularisering:** et program delt op i moduler og pakker, og hvad der sker ved en `import`
+- **Afhængigheder mellem lag:** importer følger MVVM-lagene, så View kender ViewModel, og ViewModel kender Model, men ikke omvendt
+- **Navigation:** flere sider i samme app med en fælles ramme (`ui.sub_pages`)
+- **Arkitektur, der skalerer:** MVVM med flere sider, hvor hver side har sit eget View og sin egen ViewModel
+
+**Lærerens eksempel:** `src/app_3/`
+
+Modulet har to dele. Først lærer du, hvordan Python-kode organiseres i mapper. Derefter bruger du strukturen til at bygge en app med flere sider.
+
+## Del 1: Moduler og pakker
+
+### Et modul er en fil
+
+Hver `.py`-fil er et **modul**. Du har allerede brugt moduler i `app_2`, hvor `viewmodel.py` henter en funktion fra `model.py`:
+
+```python
+from model import fetch_forecast
+```
+
+Linjen betyder: find modulet `model`, og hent navnet `fetch_forecast` derfra. Der er to måder at importere på:
+
+| Du skriver | Sådan bruger du det |
+|---|---|
+| `import model` | `model.fetch_forecast(...)` |
+| `from model import fetch_forecast` | `fetch_forecast(...)` |
+
+At dele et program op i moduler kaldes modularisering. Hvert modul skal have ét ansvar, og navnet skal fortælle, hvad det er.
+
+### Hvad sker der ved en import?
+
+Når Python importerer et modul, bliver hele filen kørt én gang. Gem dette som `geometry.py`:
+
+```python
+print("geometry.py bliver indlæst")
+
+def area(width: float, height: float) -> float:
+    return width * height
+
+if __name__ == "__main__":
+    print("Test:", area(2, 3))
+```
+
+Og dette som `main.py` i samme mappe:
+
+```python
+from geometry import area
+
+print(area(4, 5))
+```
+
+| Du kører | Udskrift |
+|---|---|
+| `python geometry.py` | `geometry.py bliver indlæst` og `Test: 6` |
+| `python main.py` | `geometry.py bliver indlæst` og `20` |
+
+Linjen `if __name__ == "__main__":` betyder "kun hvis denne fil er den, der blev startet". Koden under den kører ikke, når filen bliver importeret af en anden fil.
+
+Det bruger vi to steder:
+
+- Nederst i et modul til en lille test, som i `app_2/model.py`.
+- I `main.py` omkring `ui.run()`, så appen kun starter, når `main.py` selv bliver kørt.
+
+### En pakke er en mappe med moduler
+
+Når der bliver mange moduler, samler vi dem i mapper. En mappe med moduler kaldes en **pakke**. Den indeholder en fil med navnet `__init__.py`, som fortæller, at mappen er en pakke. Filen må gerne være tom.
+
+`app_3` er en pakke med to underpakker:
+
+```text
+src/
+└── app_3/                          pakken app_3
+    ├── __init__.py
+    ├── main.py                     root() og ui.run()
+    ├── models/                     pakken app_3.models
+    │   ├── __init__.py
+    │   ├── models.py               STATIONS, PARAMETERS og CLIMATE_YEARS
+    │   └── services.py             fetch_forecast() og andre API-kald
+    └── views/                      pakken app_3.views
+        ├── __init__.py
+        ├── forecast.py             View for prognosesiden
+        ├── forecast_viewmodel.py   ViewModel for prognosesiden
+        ├── climate.py              View for klimasiden
+        └── climate_viewmodel.py    ViewModel for klimasiden
+```
+
+Sammenlign med `app_2`, hvor alle filer lå i samme mappe:
+
+| `app_2` | `app_3` |
+|---|---|
+| `options.py` | `models/models.py` |
+| `model.py` | `models/services.py` |
+| `viewmodel.py` | `views/forecast_viewmodel.py` |
+| `view.py` | `views/forecast.py` og `main.py` |
+
+### Import mellem pakker
+
+Et modul i en pakke har en adresse, hvor mapperne adskilles med punktum. Filen `src/app_3/models/services.py` har adressen `app_3.models.services`.
+
+Vi skriver altid hele adressen, og den starter altid med pakkens navn. Det kaldes en **absolut import**:
+
+```python
+from app_3.models.services import fetch_forecast
+from app_3.models.models import PARAMETERS
+from app_3.views.forecast import forecast_view
+```
+
+Fordelen er, at den samme linje virker i alle filer i projektet, uanset hvilken mappe filen ligger i.
+
+| I `app_2` | I `app_3` |
+|---|---|
+| `from model import fetch_forecast` | `from app_3.models.services import fetch_forecast` |
+| `from options import PARAMETERS` | `from app_3.models.models import PARAMETERS` |
+| `from viewmodel import WeatherViewModel` | `from app_3.views.forecast_viewmodel import ForecastViewModel` |
+
+Du kan møde en anden skrivemåde i andres kode, for eksempel `from .services import fetch_forecast`. Det er en relativ import. Vi bruger absolutte importer i hele forløbet.
+
+### Sådan finder Python pakken
+
+Python leder efter pakken `app_3` i den mappe, programmet bliver startet fra. Derfor skal appen startes fra `src`, som er mappen, hvor `app_3` ligger:
+
+```text
+cd src
+python -m app_3.main
+```
+
+`-m` betyder "kør dette modul". Læg mærke til, at du skriver modulets adresse med punktummer og uden `.py`.
+
+Tre fejl, du med sikkerhed kommer til at møde:
+
+| Du gør | Fejlmeddelelse | Forklaring |
+|---|---|---|
+| Kører `python app_3/main.py` | `ModuleNotFoundError: No module named 'app_3'` | Python leder nu inde i mappen `app_3` og kan ikke se pakken udefra |
+| Kører `python -m app_3.main` fra en forkert mappe | `Error while finding module specification for 'app_3.main'` | Du står ikke i `src` |
+| Skriver `from models.services import ...` | `ModuleNotFoundError: No module named 'models'` | Adressen mangler pakkens navn forrest |
+
+**I PyCharm:**
+
+- Opret en pakke med højreklik → **New → Python Package**. Så laver PyCharm selv `__init__.py`.
+- Højreklik på mappen `src`, og vælg **Mark Directory as → Sources Root**. Så forstår PyCharm dine importer, og du kan starte `main.py` med højreklik → **Run**.
+
+### Importer følger lagene
+
+I modul 2 lærte du, at et lag kun må kalde laget til højre for sig: View kalder ViewModel, og ViewModel kalder Model. Med pakker kan du se reglen direkte i import-linjerne:
+
+| Fil | Må importere fra | Må ikke importere fra |
+|---|---|---|
+| `main.py` | `views` | |
+| `views/forecast.py` | sin egen ViewModel, `models/models.py` | |
+| `views/forecast_viewmodel.py` | `models` | `nicegui` |
+| `models/services.py` | | `views`, `nicegui` |
+
+Hvis `models` importerer fra `views`, og `views` importerer fra `models`, får du en cirkulær import, og programmet kan ikke starte. Men vigtigere: så er lagdelingen brudt.
+
+Du kan altså kontrollere din arkitektur ved at læse de øverste linjer i hver fil.
+
+### Øvelser: moduler og pakker
+
+**Øvelse 3.1 – Dit første modul.** Opret `geometry.py` og `main.py` som i eksemplet ovenfor.
+
+1. Kør begge filer, og sammenlign med tabellen.
+2. Fjern linjen `if __name__ == "__main__":`, og ryk linjen under den ud til venstre. Kør `main.py`. Hvad er forskellen?
+3. Tilføj en funktion `perimeter()` til `geometry.py`, og brug den i `main.py`.
+
+**Øvelse 3.2 – Byg en pakke.** Opret denne struktur i en ny mappe:
+
+```text
+shop/
+├── __init__.py
+├── main.py
+├── models/
+│   ├── __init__.py
+│   └── prices.py
+└── views/
+    ├── __init__.py
+    └── receipt.py
+```
+
+`prices.py`:
+
+```python
+PRICES = {"æble": 4, "banan": 3, "mælk": 12}
+
+def total(items: list[str]) -> int:
+    return sum(PRICES[item] for item in items)
+```
+
+`receipt.py` skal indeholde en funktion `print_receipt(items)`, som udskriver hver vare med pris og til sidst totalen. `main.py` skal kalde `print_receipt(["æble", "banan", "mælk"])`.
+
+Skriv selv import-linjerne i `receipt.py` og `main.py`, og start programmet med `python -m shop.main`. Hvilken mappe skal du stå i?
+
+**Øvelse 3.3 – Fremprovokér fejlene.** Brug pakken fra øvelse 3.2:
+
+1. Kør `python shop/main.py`. Læs fejlmeddelelsen.
+2. Skriv `cd shop`, og kør `python -m shop.main`. Læs fejlmeddelelsen.
+3. Ændr importen i `receipt.py` til `from models.prices import PRICES, total`, og start programmet rigtigt. Læs fejlmeddelelsen.
+
+Forklar for din makker, hvad hver fejl betyder, og ret dem igen.
+
+**Øvelse 3.4 – Find fejlene.** Linjerne står i `app_3/views/forecast.py`. Hvilke er forkerte, og hvorfor?
+
+```python
+from app_3.models.models import STATIONS
+from models.services import fetch_forecast
+from app_3.views.forecast_viewmodel.py import ForecastViewModel
+from app_3.views import forecast_viewmodel
+from app_3/models/models import PARAMETERS
+```
+
+**Øvelse 3.5 – Læs importerne.** Åbn alle filer i `src/app_3`, og læs kun import-linjerne.
+
+1. Tegn en pil fra hver fil til de filer, den importerer fra.
+2. Går der nogen pil fra `models` til `views`?
+3. Hvilke filer importerer `nicegui`? Passer det med tabellen ovenfor?
+
+## Del 2: Navigation
+
+### Flere sider i samme app
+
+Indtil nu har hele appen været én side. Når appen får flere funktioner, deler vi den op i sider. Hver side er en funktion, der bygger sit eget indhold, og hver side ligger i sit eget modul i pakken `views`.
+
+`views/forecast.py`:
+
+```python
+from nicegui import ui
+
+def forecast_view() -> None:
+    ui.label("Prognose").classes("text-2xl font-bold")
+```
+
+`views/climate.py`:
+
+```python
+from nicegui import ui
+
+def climate_view() -> None:
+    ui.label("Klima").classes("text-2xl font-bold")
+```
+
+Der er ingen `ui.run()` i de to filer. De beskriver kun en side.
+
+### En fælles ramme med `ui.sub_pages`
+
+`main.py` importerer siderne og bygger den ramme, der er ens på alle sider: en header og en menu. `ui.sub_pages` er det område, hvor den valgte side bliver vist.
+
+```python
+from nicegui import ui
+from app_3.views.forecast import forecast_view
+from app_3.views.climate import climate_view
+
+def root() -> None:
+    with ui.header():
+        ui.label("Weather app")
+    with ui.left_drawer():
+        ui.link("Forecast", "/")
+        ui.link("Climate", "/climate")
+    ui.sub_pages({"/": forecast_view, "/climate": climate_view}).classes("w-full")
+
+if __name__ == "__main__":
+    ui.run(root, reload=False)
+```
+
+Dictionary'en forbinder en adresse med en funktion. Når brugeren klikker på et link, skifter kun indholdet i `ui.sub_pages`. Header og menu bliver stående.
+
+Læg mærke til, at der står `forecast_view` uden parenteser. Det er samme princip som med callbacks i modul 1.
+
+### MVVM med flere sider
+
+Hver side har sit eget View og sin egen ViewModel med sin egen state. Modellaget er fælles: begge sider kan bruge de samme funktioner i `services.py`.
+
+| Side | View | ViewModel | Model |
+|---|---|---|---|
+| Prognose | `views/forecast.py` | `views/forecast_viewmodel.py` | `models/services.py` |
+| Klima | `views/climate.py` | `views/climate_viewmodel.py` | `models/services.py` |
+
+Det er her, arkitekturen betaler sig. Du kan bygge en ny side uden at røre ved den gamle, og du kan genbruge modellen uden at kopiere kode.
+
+### Øvelser: navigation
+
+**Øvelse 3.6 – To sider.** Lav en lille pakke med en `main.py` og en underpakke `views`. Appen skal have en header, en menu og to sider, `Forside` og `Om`, som ligger i hvert sit modul. Hver side skal bare vise en overskrift.
+
+**Øvelse 3.7 – En tredje side.** Tilføj en side `Kontakt` til appen fra øvelse 3.6. Hvilke filer skulle du oprette, og hvilke skulle du ændre?
+
+**Øvelse 3.8 – State på tværs af sider.** Lav en tæller med knap på `Forside`. Klik nogle gange, gå til `Om`, og gå tilbage. Hvad er der sket med tallet? Forklar hvorfor ud fra, hvor ViewModel bliver oprettet. Vi løser problemet i modul 4.
+
+**Øvelse 3.9 – Læs lærerens kode.** Åbn `src/app_3/main.py` og `src/app_3/views/forecast.py`:
+
+1. Hvad er forskellen på `view.py` i `app_2` og `views/forecast.py` i `app_3`?
+2. Hvorfor er der ingen `ui.run()` i `forecast.py`?
+3. Hvilke filer skulle du oprette og ændre for at tilføje en side mere?
+
+## Projekt trin 5: Pakke og flere sider
+
+Opgaver og krav til trin 5 står under [Aflevering](aflevering.qmd#trin-5-pakke-og-flere-sider).

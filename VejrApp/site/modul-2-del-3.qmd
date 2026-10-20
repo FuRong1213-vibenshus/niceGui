@@ -1,0 +1,169 @@
+---
+title: "Modul 2, del 3: Refresh og fejlhåndtering"
+---
+
+## `@ui.refreshable` genopbygger en del af siden
+
+Nye data i state ændrer ikke en graf, der allerede er tegnet. Med `@ui.refreshable` markerer du en funktion, der bygger en del af siden, så den kan bygges igen.
+
+```python
+@ui.refreshable
+def weather_figure() -> None:
+    df = vm.state.hourly_forecast
+    fig = px.line(df, x="date", y="temperature_2m", markers=True)
+    ui.plotly(fig).classes("w-full h-96")
+
+weather_figure()            # opretter grafen første gang
+weather_figure.refresh()    # sletter den gamle graf og bygger en ny
+```
+
+Event-handleren fra del 2 får derfor én linje mere:
+
+```python
+def update_forecast() -> None:
+    vm.load_forecast()
+    weather_figure.refresh()
+```
+
+Byvælgeren står uden for den refreshable funktion, så den bliver ikke bygget om.
+
+## View formaterer en kopi
+
+Når view skal vise data pænt, for eksempel afrunde tal eller skrive datoer som tekst, gør den det på en kopi. De oprindelige data i state forbliver uændrede, så andre dele af appen stadig kan regne på dem.
+
+```python
+daily_df = vm.state.daily_forecast.copy()
+daily_df["date"] = daily_df["date"].dt.strftime("%a %d/%m")
+```
+
+## Fejl er en del af datahentning
+
+Når et program taler med internettet, kan meget gå galt: der er ingen forbindelse, serveren svarer ikke, eller svaret mangler data. Uden fejlhåndtering stopper funktionen med en traceback i terminalen, og brugeren ser bare en app, der ikke reagerer.
+
+## `try`, `except` og `finally`
+
+```python
+try:
+    response = requests.get(URL, params=params, timeout=10)
+    response.raise_for_status()
+except requests.Timeout:
+    print("Serveren svarede ikke i tide.")
+except requests.ConnectionError:
+    print("Ingen forbindelse.")
+finally:
+    print("Færdig med forsøget.")
+```
+
+| Blok | Hvornår kører den? |
+|---|---|
+| `try` | Altid. Stopper ved den første linje, der fejler |
+| `except` | Kun hvis der opstod en fejl af den nævnte type |
+| `else` | Kun hvis `try` lykkedes (valgfri) |
+| `finally` | Altid, uanset om det gik godt eller skidt (valgfri) |
+
+Fang de fejltyper, du forventer. Hvis du skriver `except:` uden type alle steder, bliver dine egne stavefejl også skjult, og så er de svære at finde.
+
+## Hvert lag har sin opgave ved fejl
+
+| Lag | Opgave | Eksempel i `app_2` |
+|---|---|---|
+| Model | Opdager fejlen og giver den videre med en klar besked | `raise RuntimeError("The coordinate request timed out.") from error` |
+| ViewModel | Fanger fejlen og skriver den i state | `self.state.error_message = "Vejrdata kunne ikke hentes."` |
+| View | Viser beskeden til brugeren | `ui.label(vm.state.error_message)` |
+
+Modellen kan ikke vise noget til brugeren, for den kender ikke NiceGUI. Den kan kun rejse en fejl med `raise`:
+
+```python
+def fetch_coordinates(address: str) -> tuple[float, float]:
+    try:
+        response = requests.get(url, params=params, timeout=(5, 10))
+        response.raise_for_status()
+    except requests.Timeout as error:
+        raise RuntimeError("The coordinate request timed out.") from error
+
+    results = response.json().get("results", [])
+    if not results:
+        raise ValueError(f"No coordinates were found for {address!r}.")
+    ...
+```
+
+Den sidste del er vigtig. Et tomt svar er ikke en fejl for `requests`, så modellen må selv kontrollere det.
+
+ViewModel fanger fejlen og gør den til state:
+
+```python
+def load_forecast(self) -> None:
+    self.state.is_loading = True
+    self.state.error_message = ""
+
+    try:
+        self.state.hourly_forecast = fetch_forecast(...)
+    except Exception as error:
+        print(repr(error))   # teknisk besked til udvikleren
+        self.state.hourly_forecast = pd.DataFrame()
+        self.state.error_message = "Vejrdata kunne ikke hentes."   # besked til brugeren
+    finally:
+        self.state.is_loading = False
+```
+
+Her fanger vi `Exception`, fordi ViewModel er det sidste sted, fejlen kan stoppes, før den rammer brugeren. Den tekniske fejl udskrives stadig i terminalen, så udvikleren kan se den. `finally` sørger for, at `is_loading` altid bliver sat tilbage. Læg også mærke til, at gamle data ryddes, så appen ikke viser data fra den forrige by under det nye valg.
+
+View vælger, hvad brugeren ser:
+
+```python
+@ui.refreshable
+def weather_figure() -> None:
+    if vm.state.error_message:
+        ui.label(vm.state.error_message).classes("text-red-600")
+        return
+
+    df = vm.state.hourly_forecast
+    if df.empty:
+        ui.label("Ingen prognosedata at vise.")
+        return
+
+    ui.plotly(px.line(df, x="date", y="temperature_2m")).classes("w-full h-96")
+```
+
+Fejlen er nu en del af state, og derfor virker den på samme måde som alt andet: ViewModel ændrer state, og view viser den.
+
+## Øvelser til del 3
+
+**Øvelse 2.11 – Forudsig udskriften.** Hvad udskriver programmet? Skriv dit gæt ned, før du kører det.
+
+```python
+def divide(a, b):
+    try:
+        print("A")
+        result = a / b
+        print("B")
+    except ZeroDivisionError:
+        print("C")
+        result = None
+    finally:
+        print("D")
+    return result
+
+print(divide(10, 2))
+print(divide(10, 0))
+```
+
+**Øvelse 2.12 – Den rigtige fejltype.** Skriv en funktion `read_number()`, som beder brugeren om et tal med `input()` og returnerer det som `float`. Hvis brugeren skriver noget, der ikke er et tal, skal funktionen spørge igen. Hvilken fejltype skal du fange?
+
+**Øvelse 2.13 – Fjern refresh.** Fjern linjen `weather_figure_3day.refresh()` i `src/app_2/view.py`, og skift by i appen. Hvad sker der med grafen, og hvad sker der med tabellen? Forklar forskellen.
+
+**Øvelse 2.14 – Simulér en fejl.** Indsæt denne linje øverst i `fetch_forecast()` i `src/app_2/model.py`:
+
+```python
+raise requests.ConnectionError("Øvelsesfejl")
+```
+
+1. Start appen. Hvad ser brugeren, og hvad står der i terminalen?
+2. Hvilket lag fangede fejlen, og hvilket lag viste den?
+3. Fjern linjen igen, og kontrollér, at appen virker.
+
+**Øvelse 2.15 – En by, der ikke findes.** Kald `fetch_coordinates("Xyzby")` fra en Python-fil. Hvilken fejltype får du, og hvilken linje i `model.py` rejser den?
+
+## Projekt trin 4: En robust app
+
+Opgaver og krav til trin 4 står under [Aflevering](aflevering.qmd#trin-4-en-robust-app).

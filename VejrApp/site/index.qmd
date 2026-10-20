@@ -1,0 +1,54 @@
+---
+title: "VejrApp – webapps med NiceGUI og MVVM"
+---
+
+I dette forløb lærer du at bygge en webapp i Python med NiceGUI, og du lærer at strukturere koden, så den er til at overskue, rette og udvide.
+
+Forløbet varer 4-5 uger og er projektbaseret. Det betyder, at du bygger **din egen app** ved siden af undervisningen og forbedrer den trin for trin, hver gang du har lært noget nyt.
+
+## Sådan arbejder vi
+
+Hvert modul har de samme tre dele:
+
+| Del | Hvad sker der? | Hvilken kode? |
+|---|---|---|
+| **Gennemgang** | Læreren viser nyt stof med små kodeeksempler | Vejrappen i `src/app_1`, `src/app_2` og `src/app_3` |
+| **Øvelser** | Du afprøver det nye stof i små opgaver | Små filer, du selv opretter, eller vejrappen |
+| **Projekt** | Du bygger videre på din egen app | Din egen luftkvalitets-app |
+
+Vejrappen er altså lærerens eksempel. Du skal ikke kopiere den, men bruge den som opslagsværk, når du bygger din egen app.
+
+## Oversigt over forløbet
+
+| Uge | Modul | Nyt stof | Projekttrin |
+|---|---|---|---|
+| 1 | [Modul 1: NiceGUI basis](modul-1.qmd) | UI-elementer, layout, callbacks, Plotly | [Trin 1: app med kunstige data](aflevering.qmd#trin-1-app-med-kunstige-data) |
+| 2 | [Modul 2, del 1: Data fra et API](modul-2-del-1.qmd) | HTTP, API, JSON, MVVM-lagene | [Trin 2: rigtige data](aflevering.qmd#trin-2-rigtige-data) |
+| 2-3 | [Modul 2, del 2: State, binding og events](modul-2-del-2.qmd) | `@dataclass`, single source of truth, ViewModel, `bind_value` | [Trin 3: state og valg](aflevering.qmd#trin-3-state-og-valg) |
+| 3 | [Modul 2, del 3: Refresh og fejlhåndtering](modul-2-del-3.qmd) | `@ui.refreshable`, `try`/`except`/`finally` | [Trin 4: robust app](aflevering.qmd#trin-4-en-robust-app) |
+| 4 | [Modul 3: Pakker og navigation](modul-3.qmd) | Moduler, pakker, import, flere sider, header, menu | [Trin 5: pakke og flere sider](aflevering.qmd#trin-5-pakke-og-flere-sider) |
+| 5 | [Modul 4: Udvidelse](modul-4.qmd) | NiceGUI storage, repository pattern | [Trin 6: appen gemmer brugerens valg](aflevering.qmd#trin-6-appen-gemmer-brugerens-valg) |
+
+## Faglige mål og fokus
+
+- redegøre for arkitekturen af programmer på forskellige abstraktionsniveauer, herunder relationen mellem brug og funktion
+- rette, tilpasse og udvide avancerede programmer
+- arbejde inkrementelt og systematisk i programmeringsprocessen.
+
+## Fagligt indhold
+
+- arkitekturen for programmers interaktion med omgivelserne med henblik på hændelsestyret interaktion og interaktion mellem systemer.
+
+## Projektet: din egen luftkvalitets-app
+
+Du skal bygge en app, der viser CO₂-koncentration, luftkvalitet (AQI) og NO₂ for europæiske byer. Data kommer fra Open-Meteos Air Quality API, som er gratis og ikke kræver en api-nøgle.
+
+Når forløbet er slut, kan din app:
+
+- vise en graf og en tabel med data hentet fra internettet
+- lade brugeren vælge by og parameter
+- vise en forståelig besked, når noget går galt
+- have flere sider med en menu
+- huske brugerens valg, også når appen genstartes
+
+Du når dertil gennem seks projekttrin. Opgaverne, kravene til hvert trin og kravene til den endelige aflevering står samlet på siden [Aflevering](aflevering.qmd).

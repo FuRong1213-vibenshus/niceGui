@@ -1,0 +1,235 @@
+---
+title: "Modul 2, del 2: State, binding og events"
+---
+
+## Problemet med globale variable
+
+I `app_1` ligger `weather_data`, `fig`, `plot` og de to checkboxe som globale variable, og `update_plot()` bruger dem alle. Når appen vokser, giver det to problemer:
+
+- Enhver funktion kan ændre enhver variabel. Det bliver svært at se, hvem der ændrede hvad.
+- Den samme oplysning ender let flere steder. Hvis den valgte by både ligger i `selected_city`, i `current_city` og i en dropdown, hvilken en gælder så?
+
+## Single source of truth
+
+Princippet om **single source of truth** (SSOT) siger, at hver oplysning skal ligge ét sted, og at alle andre læser den derfra.
+
+**Et eksempel uden SSOT.** Denne lille app har en titel, et byvalg og en knap:
+
+```python
+from nicegui import ui
+
+CITIES = ["Copenhagen", "Aarhus", "Odense"]
+graph_city = "Copenhagen"
+
+def change_city(e) -> None:
+    global graph_city
+    graph_city = e.value
+
+def show_graph() -> None:
+    ui.notify(f"Henter data for {graph_city}")
+
+ui.label("Vejret i Copenhagen").classes("text-2xl font-bold")
+ui.select(CITIES, value="Copenhagen", on_change=change_city)
+ui.button("Vis graf", on_click=show_graph)
+
+ui.run()
+```
+
+Vælg Aarhus, og tryk på knappen. Beskeden siger Aarhus, men titlen siger stadig Copenhagen. Appen modsiger sig selv.
+
+Årsagen er, at oplysningen "den valgte by" ligger tre steder: i teksten på titlen, i dropdownens værdi og i variablen `graph_city`. Hver gang byen ændres, skal programmøren huske at opdatere alle tre. Her blev titlen glemt.
+
+**Det samme eksempel med SSOT.** Nu ligger den valgte by ét sted, nemlig i `state.station`. Alle elementer læser derfra:
+
+```python
+from dataclasses import dataclass
+from nicegui import ui
+
+CITIES = ["Copenhagen", "Aarhus", "Odense"]
+
+@dataclass
+class AppState:
+    station: str = "Copenhagen"
+
+state = AppState()
+
+def show_graph() -> None:
+    ui.notify(f"Henter data for {state.station}")
+
+def reset() -> None:
+    state.station = "Copenhagen"
+
+ui.label().bind_text_from(
+    state, "station", backward=lambda s: f"Vejret i {s}"
+).classes("text-2xl font-bold")
+ui.select(CITIES).bind_value(state, "station")
+ui.button("Vis graf", on_click=show_graph)
+ui.button("Nulstil", on_click=reset)
+
+ui.run()
+```
+
+Titlen, dropdownen og beskeden kan ikke længere være uenige, for de har ingen egen kopi. Knappen `Nulstil` ændrer kun `state.station`, og alligevel følger både titlen og dropdownen med. (`@dataclass` og `bind` bliver forklaret i de næste afsnit.)
+
+**SSOT gælder tre slags oplysninger i vores app:**
+
+| Oplysning | Uden SSOT | Med SSOT |
+|---|---|---|
+| Brugerens valg | Byen ligger i flere variable og elementer | Byen ligger i `vm.state.station` |
+| Faste værdier | Listen af byer er skrevet både i view og i model | `STATIONS` står i `options.py` og importeres |
+| Beregnede værdier | `max_temperature` gemmes ved siden af data | Maksimum beregnes ud fra data, når det skal bruges |
+
+Den sidste række er den, man lettest overser. Hvis du gemmer noget, der kan beregnes, har du to sandheder:
+
+```python
+# Uden SSOT: to felter, der skal holdes ens
+state.hourly_forecast = new_data
+state.max_temperature = 18.4      # passer kun, indtil data ændres igen
+
+# Med SSOT: data er sandheden, resten beregnes
+max_temperature = state.hourly_forecast["temperature_2m"].max()
+```
+
+En kopi, som view laver for at formatere data, er ikke et brud på princippet. Kopien bruges kun til visning og smides væk bagefter. Sandheden ligger stadig i state.
+
+I vejrappen er state altså det fælles udgangspunkt. Grafen, tabellen og fejlbeskeden læser alle fra den samme state, og ingen af dem har deres egen kopi af, hvilken by der er valgt.
+
+## State som `@dataclass`
+
+En dataclass er en klasse, der kun skal holde på data. Du skriver felterne med type og startværdi, og Python laver selv `__init__`.
+
+```python
+from dataclasses import dataclass, field
+import pandas as pd
+
+@dataclass
+class WeatherState:
+    station: str = "Copenhagen"
+    parameter: str = "temperature"
+    is_loading: bool = False
+    error_message: str = ""
+    hourly_forecast: pd.DataFrame = field(default_factory=pd.DataFrame)
+```
+
+`field(default_factory=pd.DataFrame)` betyder, at hver ny state får sin egen tomme DataFrame.
+
+```python
+state = WeatherState()
+print(state.station)      # Copenhagen
+state.station = "Aarhus"
+print(state)              # en pæn udskrift af alle felter
+```
+
+## ViewModel udfører handlinger
+
+ViewModel ejer state og har metoder, der ændrer den. View må gerne læse state, men det er ViewModel, der henter data og lægger dem ind.
+
+```python
+from model import fetch_forecast
+from options import STATIONS
+
+class WeatherViewModel:
+    def __init__(self) -> None:
+        self.state = WeatherState()
+
+    def load_forecast(self) -> None:
+        latitude, longitude = STATIONS[self.state.station]
+        self.state.hourly_forecast = fetch_forecast(latitude, longitude)
+```
+
+ViewModel opretter ingen UI-elementer. Derfor kan du afprøve den i en almindelig Python-fil:
+
+```python
+vm = WeatherViewModel()
+vm.load_forecast()
+print(vm.state.hourly_forecast.head())
+```
+
+## Binding forbinder et element med state
+
+Binding holder et elements værdi og et felt i state synkroniseret, uden at du skriver en callback.
+
+| Metode | Retning |
+|---|---|
+| `bind_value_to(vm.state, "station")` | Fra elementet til state |
+| `bind_value_from(vm.state, "station")` | Fra state til elementet |
+| `bind_value(vm.state, "station")` | Begge veje |
+
+```python
+vm = WeatherViewModel()
+
+station_selection = ui.select(
+    options=list(STATIONS.keys()),
+    value=vm.state.station,
+    label="Station",
+)
+station_selection.bind_value_to(vm.state, "station")
+
+ui.label().bind_text_from(vm.state, "station", backward=lambda s: f"Valgt by: {s}")
+```
+
+Når brugeren vælger en by, ændres `vm.state.station`, og labelen følger med. Du har ikke skrevet nogen callback. Elementer, der reagerer på ændringer i state på denne måde, kaldes reaktive.
+
+## Binding og event-handler er to forskellige ting
+
+Binding flytter en værdi. Den starter ikke noget arbejde. Hvis appen skal hente nye data, når byen ændres, skal du også registrere en event-handler:
+
+```python
+def update_forecast() -> None:
+    vm.load_forecast()
+
+station_selection.on_value_change(update_forecast)
+```
+
+Sådan rejser et byskift gennem lagene:
+
+1. Brugeren vælger en by i `ui.select` (View).
+2. Bindingen skriver værdien til `vm.state.station` (state).
+3. Event-handleren kalder `vm.load_forecast()` (ViewModel).
+4. ViewModel kalder `fetch_forecast()` (Model), som henter data.
+5. ViewModel lægger de nye data i state.
+6. View viser de nye data. Det ser vi på i del 3.
+
+## Øvelser til del 2
+
+**Øvelse 2.5 – Din første dataclass.** Lav en dataclass `CounterState` med feltet `count: int = 0`. Lav en klasse `CounterViewModel` med metoden `increment()`. Afprøv dem med `print` uden NiceGUI.
+
+**Øvelse 2.6 – Reaktiv tæller.** Byg tælleren fra øvelse 1.2 igen, men nu med din `CounterViewModel`. Labelen skal bruge `bind_text_from`, og knappen skal kalde `vm.increment`. Sammenlign med din gamle løsning. Hvor ligger tallet nu?
+
+**Øvelse 2.7 – Bindingens retning.** Lav et `ui.input` og en `ui.label`, som begge er bundet til det samme felt i en state. Tilføj en knap, der sætter feltet til `"Nulstillet"`. Afprøv inputfeltet med `bind_value_to`, `bind_value_from` og `bind_value`. Hvad sker der i hvert tilfælde, når du trykker på knappen?
+
+**Øvelse 2.8 – Følg et byskift.** Åbn `src/app_2/view.py` og `src/app_2/viewmodel.py`. Indsæt `print("1: handler")`, `print("2: viewmodel")` og så videre på de steder, som de seks trin ovenfor beskriver. Kør appen, skift by, og kontrollér rækkefølgen i terminalen.
+
+**Øvelse 2.9 – Ret og udvid lærerens app.** `WeatherState` har et felt `parameter`, og `options.py` har en dictionary `PARAMETERS`, men brugeren kan ikke vælge parameter i appen.
+
+1. Tilføj et `ui.select` med parametrene i `view.py`, bind det til `vm.state.parameter`, og lad det kalde `update_forecast`.
+2. Vælg `rain` i appen. Hvad sker der? Læs fejlmeddelelsen i terminalen.
+3. Fejlen ligger i `fetch_forecast()` i `model.py`. Find den, forklar den for din makker, og ret den.
+
+**Øvelse 2.10 – Find de to sandheder.** Kør programmet, og skriv et nyt navn i feltet.
+
+```python
+from nicegui import ui
+
+name = "Anna"
+
+def rename(e) -> None:
+    global name
+    name = e.value
+    greeting.set_text(f"Hej {name}")
+
+greeting = ui.label("Hej Anna")
+badge = ui.label("Logget ind som: Anna")
+ui.input("Navn", value="Anna", on_change=rename)
+
+ui.run()
+```
+
+1. Hvilken tekst på siden bliver forkert?
+2. Hvor mange steder i programmet ligger navnet? Skriv dem op.
+3. Skriv programmet om, så navnet kun ligger i en state, og begge tekster er bundet til den.
+4. Åbn `src/app_2`. Hvor mange filer skal du ændre for at tilføje Aalborg til appen? Hvorfor er det nok?
+
+## Projekt trin 3: State og valg
+
+Opgaver og krav til trin 3 står under [Aflevering](aflevering.qmd#trin-3-state-og-valg).

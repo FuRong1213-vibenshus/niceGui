@@ -1,0 +1,91 @@
+---
+title: "Modul 2: API og MVVM-arkitektur"
+---
+
+**Mål:** Du kan hente data fra et API, dele din kode op i Model, View og ViewModel, og du kan forklare, hvordan et valg i brugerfladen bliver til nye data på skærmen.
+
+**Fagligt fokus:**
+
+- **MVVM-arkitektur:** Model, View og ViewModel som tre lag med hver sin opgave
+- **Adskillelse af ansvar (separation of concerns):** hvert stykke kode har ét ansvar, så en ændring ét sted ikke ødelægger noget et andet sted
+- **Interaktion mellem systemer:** data fra et API med HTTP og JSON, og modellen som en funktion med en aftale
+- **Single source of truth (SSOT):** hver oplysning har ét hjem i state, og alt andet beregnes ud fra den
+- **State og binding:** state som `@dataclass`, og forskellen på binding og event-handler
+- **Robusthed:** `@ui.refreshable` og fejlhåndtering med `try`/`except`/`finally`, hvor hvert lag har sin opgave ved fejl
+
+**Lærerens eksempel:** `src/app_2/`
+
+Modulet er delt i tre dele, og der hører et projekttrin til hver del.
+
+- [Del 1: Data fra et API](modul-2-del-1.qmd)
+- [Del 2: State, binding og events](modul-2-del-2.qmd)
+- [Del 3: Refresh og fejlhåndtering](modul-2-del-3.qmd)
+
+## Hvorfor en arkitektur?
+
+I `app_1` ligger alt i én fil: data, graf, knapper og callbacks. Det fungerer til 75 linjer. Men forestil dig, at appen også skal hente data fra internettet, håndtere fejl og have flere sider. Så bliver det svært at finde ud af, hvor en fejl kommer fra, og hvad der går i stykker, når du ændrer noget.
+
+En arkitektur er en aftale om, hvor de forskellige slags kode skal ligge. Vi bruger MVVM, som står for **M**odel, **V**iew, **V**iew**M**odel.
+
+| Lag | Ansvar | Fil i `app_2` | Kender NiceGUI? |
+|---|---|---|---|
+| **Model** | Henter data og laver dem om til DataFrames | `model.py` | Nej |
+| **ViewModel** | Holder appens tilstand (state) og udfører handlinger | `viewmodel.py` | Nej |
+| **View** | Viser elementer og reagerer på brugeren | `view.py` | Ja |
+
+Derudover indeholder `options.py` de faste valgmuligheder, som flere lag bruger.
+
+Lagene står på række, og hvert lag taler kun med sin nabo. Figuren viser, hvad der sker i `app_2`, når brugeren vælger en ny by:
+
+```text
+    bruger                                                                   internettet
+      │ 1. vælger en by                                                         ▲ │ 4. henter
+      ▼                                                                         │ ▼    data
+┌────────────┐  2. load_forecast()   ┌──────────────┐  3. fetch_forecast()  ┌────────────┐
+│    View    │ ────────────────────► │  ViewModel   │ ────────────────────► │   Model    │
+│  view.py   │ ◄──────────────────── │ viewmodel.py │ ◄──────────────────── │  model.py  │
+└────────────┘  6. læser vm.state    └──────────────┘  5. returnerer data   └────────────┘
+```
+
+De øverste pile peger mod højre og er **funktionskald**: et lag beder det næste lag om at gøre noget. De nederste pile peger mod venstre og er **svar**: data, der kommer tilbage.
+
+1. Brugeren vælger en by i View.
+2. View kalder `vm.load_forecast()` i ViewModel. View beder altså om nye data, men henter dem ikke selv.
+3. ViewModel kalder `fetch_forecast()` i Model.
+4. Model henter data fra internettet: den sender en forespørgsel til API'et og får et svar.
+5. Model returnerer data som DataFrames til ViewModel, som gemmer dem i sin state.
+6. View læser `vm.state` og tegner graf og tabel.
+
+**Reglen er: et lag må kun kalde laget til højre for sig.**
+
+| Lag | Må | Må ikke |
+|---|---|---|
+| **View** | kalde ViewModels metoder og læse/ændre dens state | hente data selv. Der står aldrig `fetch_forecast()` eller `requests` i `view.py` |
+| **ViewModel** | kalde Models funktioner | bruge `ui.`. Den ved ikke, om data ender i en graf eller en tabel |
+| **Model** | hente data og returnere dem | kalde de andre lag. Den ved ikke, at der findes en app |
+
+Du kan kontrollere reglen ved at læse import-linjerne øverst i hver fil:
+
+```python
+# view.py
+from viewmodel import WeatherViewModel
+
+# viewmodel.py
+from model import fetch_forecast
+
+# model.py importerer hverken view eller viewmodel
+```
+
+Reglen gør, at du ved, hvor du skal lede, når noget skal ændres:
+
+- Skal grafen have andre farver, retter du kun i `view.py`.
+- Skal data komme fra et andet API, retter du kun i `model.py`.
+- Virker datahentningen ikke, kan du køre `model.py` alene og finde fejlen uden at starte appen.
+
+Vil du læse mere om arkitektur og MVVM?
+
+- [Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) forklarer princippet bag: hver del af koden har ét ansvar.
+- [Model–view–viewmodel på Wikipedia](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93viewmodel) beskriver de tre lag og historien bag mønstret.
+- [Microsofts guide til MVVM](https://learn.microsoft.com/en-us/dotnet/architecture/maui/mvvm) går mere i dybden. Eksemplerne er skrevet i C#, men idéerne er de samme.
+
+Flere links står under [Materialer](materialer.qmd).

@@ -1,0 +1,147 @@
+---
+title: "Modul 1: NiceGUI basis"
+---
+
+**Mål:** Du kan bygge en lille app med tekst, knapper og en graf, og du kan forklare, hvad en callback-funktion er.
+
+**Fagligt fokus:**
+
+- **Brugerflade som kode:** UI-elementer og layout med `ui.row`, `ui.column` og `ui.card`
+- **Event-handleren programmering:** programmet venter på brugeren, og en callback-funktion bliver kaldt, når der sker noget
+- **Visualisering:** fra data til graf med Plotly
+- **Opdatering af brugerfladen:** en callback 
+
+**Lærerens eksempel:** `src/app_1/main.py`
+
+## Din første app
+
+En NiceGUI-app er et Python-program. Hver linje med `ui.` opretter et element på siden, og `ui.run()` starter appen.
+
+```python
+from nicegui import ui
+
+ui.label("Weather App")
+ui.button("Klik her")
+
+ui.run()
+```
+
+Elementerne vises i den rækkefølge, de står i koden.
+
+## Udseende med `.classes()`
+
+Du ændrer et elements udseende ved at tilføje klasser. Klasserne adskilles med mellemrum.
+
+```python
+ui.label("Weather App").classes("text-2xl font-bold")
+ui.label("Version 1").classes("text-gray-500")
+```
+
+## Layout med `with`
+
+Layout-elementer som `ui.row`, `ui.column` og `ui.card` er beholdere. Alt, der er indrykket under `with`, havner inde i beholderen.
+
+```python
+with ui.row():
+    ui.button("Temperature")
+    ui.button("Rain")
+
+with ui.card():
+    ui.label("Dette står inde i et kort")
+```
+
+`ui.row` lægger elementerne ved siden af hinanden, og `ui.column` lægger dem under hinanden.
+
+## Hændelser og callback-funktioner
+
+En app venter på, at brugeren gør noget. Det kaldes en hændelse (event). En callback-funktion er en funktion, som NiceGUI kalder, når hændelsen sker.
+
+```python
+def say_hello() -> None:
+    ui.notify("Hej!")
+
+ui.button("Sig hej", on_click=say_hello)
+```
+
+Læg mærke til, at der står `say_hello` uden parenteser. Du giver funktionen til knappen, så den kan kaldes senere.
+
+| Du skriver | Det betyder |
+|---|---|
+| `on_click=say_hello` | Kald funktionen, når brugeren klikker |
+| `on_click=say_hello()` | Kald funktionen med det samme, mens siden bygges (forkert) |
+
+Andre elementer har tilsvarende hændelser, for eksempel `ui.checkbox("Rain", on_change=update_plot)`.
+
+## En graf med Plotly
+
+Data ligger i en pandas DataFrame, Plotly laver figuren, og `ui.plotly` viser den i appen.
+
+```python
+import pandas as pd
+import plotly.express as px
+from nicegui import ui
+
+def make_weather_table() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "day": ["Monday", "Tuesday", "Wednesday"],
+            "temperature": [12, 14, 13],
+            "rain": [0.0, 1.5, 0.2],
+        }
+    )
+
+def make_plot(df: pd.DataFrame, column: str):
+    return px.line(df, x="day", y=column, markers=True, title=column)
+
+weather_data = make_weather_table()
+plot = ui.plotly(make_plot(weather_data, "temperature")).classes("w-full")
+
+ui.run()
+```
+
+## Opdater grafen fra en callback
+
+En figur, der allerede er vist, ændrer sig ikke af sig selv. Du skal give plotkomponenten en ny figur og bede den om at opdatere.
+
+```python
+def show_rain() -> None:
+    plot.figure = make_plot(weather_data, "rain")
+    plot.update()
+    ui.notify("Viser nedbør")
+
+ui.button("Rain", on_click=show_rain)
+```
+
+## Øvelser til modul 1
+
+**Øvelse 1.1 – Forudsig rækkefølgen.** Læs koden, og skriv ned, hvordan siden kommer til at se ud. Kør den derefter, og sammenlign.
+
+```python
+ui.label("A")
+with ui.row():
+    ui.label("B")
+    with ui.column():
+        ui.label("C")
+        ui.label("D")
+    ui.label("E")
+```
+
+**Øvelse 1.2 – Tæller.** Lav en app med en label, der viser `0`, og en knap. Hver gang brugeren klikker, skal tallet blive én større. Tip: en label har metoden `set_text()`.
+
+**Øvelse 1.3 – Find fejlen.** Denne knap viser beskeden, før brugeren har klikket, og bagefter sker der ingenting. Forklar hvorfor, og ret koden.
+
+```python
+ui.button("Gem", on_click=ui.notify("Gemt"))
+```
+
+Tip: en lambda-funktion er en lille funktion uden navn, som skrives på én linje. `lambda: print("Hej")` kalder ikke `print` med det samme, men laver en funktion, der kan kaldes senere. Læs mere i [Pythons tutorial om lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions) og [Python lambda](https://www.w3schools.com/python/python_lambda.asp).
+
+**Øvelse 1.4 – Læs lærerens kode.** Åbn `src/app_1/main.py`, og svar på spørgsmålene:
+
+1. Hvilken funktion kører, når brugeren sætter hak i en checkbox?
+2. Hvilke variable bruger `update_plot()`, som ikke er oprettet inde i funktionen?
+3. Hvad sker der, hvis du fjerner linjen `plot.update()`?
+
+## Projekt trin 1: CO₂ Forecast App med kunstige data
+
+Opgaver og krav til trin 1 står under [Aflevering](aflevering.qmd#trin-1-app-med-kunstige-data).

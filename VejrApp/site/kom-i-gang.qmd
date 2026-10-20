@@ -1,0 +1,31 @@
+---
+title: "Kom i gang"
+---
+
+Vi bruger PyCharm som editor. Vejledningen gælder både Windows og Mac.
+
+## Installer bibliotekerne
+
+```text
+python -m pip install nicegui pandas plotly requests requests-cache
+```
+
+## Kør lærerens eksempler
+
+**Modul 1 og 2** kan startes direkte i PyCharm. Højreklik på filen i projektoversigten, og vælg **Run**:
+
+- Modul 1: `src/app_1/main.py`
+- Modul 2: `src/app_2/view.py`
+
+Appen åbner i browseren på `http://localhost:8080`. Stop den med den røde stopknap i PyCharm.
+
+**Modul 3** er en pakke og skal startes fra mappen `src` i terminalen:
+
+```text
+cd src
+python -m app_3.main
+```
+
+Stop appen ved at klikke i terminalen og trykke `Ctrl+C` (også på Mac). Skriv `cd ..` for at gå én mappe tilbage.
+
+Du kan også starte et program fra terminalen i stedet for at højreklikke, for eksempel `python src/app_1/main.py`.
