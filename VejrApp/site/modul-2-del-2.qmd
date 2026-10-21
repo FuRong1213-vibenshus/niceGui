@@ -4,10 +4,12 @@ title: "Modul 2, del 2: State, binding og events"
 
 ## Problemet med globale variable
 
-I `app_1` ligger `weather_data`, `fig`, `plot` og de to checkboxe som globale variable, og `update_plot()` bruger dem alle. Når appen vokser, giver det to problemer:
+I `app_1` ligger `weather_data`, `fig`, `plot` og de to checkboxe som globale variable, og `update_plot()` bruger dem alle. 
+Når appen vokser, giver det to problemer:
 
 - Enhver funktion kan ændre enhver variabel. Det bliver svært at se, hvem der ændrede hvad.
-- Den samme oplysning ender let flere steder. Hvis den valgte by både ligger i `selected_city`, i `current_city` og i en dropdown, hvilken en gælder så?
+- Den samme oplysning ender let flere steder. Hvis den valgte by både ligger i `selected_city`, 
+i `current_city` og i en dropdown, hvilken en gælder så?
 
 ## Single source of truth
 
@@ -119,6 +121,110 @@ print(state.station)      # Copenhagen
 state.station = "Aarhus"
 print(state)              # en pæn udskrift af alle felter
 ```
+
+::: {.callout-note collapse="true"}
+## Ekstra læsning: Mere om dataclasses
+
+**Den samme klasse uden `@dataclass`.** Her er en klasse, der holder på en vejrmåling, skrevet som en almindelig klasse:
+
+```python
+class Measurement:
+    def __init__(self, station: str, temperature: float, wind: float = 0.0) -> None:
+        self.station = station
+        self.temperature = temperature
+        self.wind = wind
+
+    def __repr__(self) -> str:
+        return f"Measurement(station={self.station!r}, temperature={self.temperature!r}, wind={self.wind!r})"
+
+    def __eq__(self, other) -> bool:
+        return (self.station, self.temperature, self.wind) == (other.station, other.temperature, other.wind)
+```
+
+Og her er den med `@dataclass`:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Measurement:
+    station: str
+    temperature: float
+    wind: float = 0.0
+```
+
+De to klasser opfører sig ens. `@dataclass` læser felterne og skriver selv tre metoder:
+
+| Metode | Hvad den gør | Eksempel |
+|---|---|---|
+| `__init__` | Opretter objektet med felterne | `m = Measurement("Aarhus", 12.5)` |
+| `__repr__` | Pæn udskrift med `print` | `Measurement(station='Aarhus', temperature=12.5, wind=0.0)` |
+| `__eq__` | Sammenligner felterne med `==` | `Measurement("Aarhus", 12.5) == Measurement("Aarhus", 12.5)` giver `True` |
+
+Uden `__eq__` ville den sidste sammenligning give `False`, fordi Python så kun tjekker, om det er det samme objekt.
+
+**Fordele ved dataclasses**
+
+- **Mindre kode.** Hvert felt skrives én gang i stedet for tre gange (parameter, `self.x = x`, `__repr__`).
+- **Færre fejl.** Når du tilføjer et felt, kan du ikke glemme at opdatere `__init__` eller `__repr__`.
+- **Overblik.** Alle felter, deres typer og startværdier står samlet øverst i klassen. Det er let at se, hvilke data objektet holder.
+- **Hjælp fra editoren.** Typerne gør, at VS Code kan foreslå feltnavne og advare, hvis du skriver forkert.
+- **Lettere fejlfinding.** `print(state)` viser alle felter med det samme.
+
+En dataclass er stadig en helt almindelig klasse. Du kan godt give den metoder, og NiceGUI kan binde til felterne, som du så ovenfor.
+
+**Faldgrube: lister og andre objekter som startværdi.** Startværdien bliver lavet én gang, når klassen defineres. Hvis den er et objekt, der kan ændres, deler alle instanser det samme objekt. For lister, dictionaries og sets stopper Python dig:
+
+```python
+@dataclass
+class Favorites:
+    cities: list[str] = []      # ValueError: mutable default ... use default_factory
+```
+
+Brug i stedet `field(default_factory=...)`, så hver instans får sin egen nye liste:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class Favorites:
+    cities: list[str] = field(default_factory=list)
+```
+
+For en DataFrame giver Python *ingen* fejl, men alle instanser ville dele den samme DataFrame. Derfor bruger `WeatherState` også `field(default_factory=pd.DataFrame)`.
+
+**Data, der ikke må ændres: `frozen=True`.** Med `@dataclass(frozen=True)` kan felterne ikke ændres, efter objektet er lavet. Det passer til faste værdier, fx koordinater:
+
+```python
+@dataclass(frozen=True)
+class Coordinates:
+    latitude: float
+    longitude: float
+
+aarhus = Coordinates(56.16, 10.20)
+aarhus.latitude = 0     # FrozenInstanceError: cannot assign to field 'latitude'
+```
+
+Bemærk, at state i vejrappen *ikke* må være frozen. Binding skal kunne skrive til den.
+
+**Hvornår skal du bruge en dataclass?** Spørg dig selv: *Er klassens vigtigste opgave at holde på data?*
+
+| Brug en dataclass | Brug en almindelig klasse |
+|---|---|
+| State i en app, fx `WeatherState` | En klasse, der mest *gør* noget, fx `WeatherViewModel` |
+| En "post" med faste felter, fx en måling, en elev eller en bog | En klasse, der styrer andre objekter eller forbindelser |
+| Indstillinger, fx `forecast_days` og `units` samlet ét sted | En klasse, hvor `__init__` skal gøre meget arbejde |
+| Når en funktion skal returnere flere værdier med navne | |
+
+Og hvornår er en dataclass for meget?
+
+- **En dictionary** er fin til data, hvor nøglerne ikke er kendt på forhånd, fx `STATIONS`, hvor du kan tilføje flere byer.
+- **En tuple** er fin til to-tre værdier, der kun bruges et enkelt sted, fx `latitude, longitude = STATIONS[city]`.
+
+Når de samme felter går igen flere steder i programmet, eller når du begynder at skrive `data["temperatur"]` og staver det forkert, er det tid til en dataclass.
+
+Læs mere i Pythons dokumentation: <https://docs.python.org/3/library/dataclasses.html>
+:::
 
 ## ViewModel udfører handlinger
 
