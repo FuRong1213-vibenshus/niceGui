@@ -136,6 +136,166 @@ ui.button("Gem", on_click=ui.notify("Gemt"))
 
 Tip: en lambda-funktion er en lille funktion uden navn, som skrives på én linje. `lambda: print("Hej")` kalder ikke `print` med det samme, men laver en funktion, der kan kaldes senere. Læs mere i [Pythons tutorial om lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions) og [Python lambda](https://www.w3schools.com/python/python_lambda.asp).
 
+::: {.callout-note collapse="true"}
+## Ekstra læsning: Funktioner, scope og lambda
+
+
+**Hvad sker der, når en funktion kaldes?** Se på dette program:
+
+```python
+def celsius_to_fahrenheit(celsius: float) -> float:
+    return celsius * 9 / 5 + 32
+
+def describe(celsius: float) -> str:
+    fahrenheit = celsius_to_fahrenheit(celsius)
+    return f"{celsius} °C er {fahrenheit} °F"
+
+print(describe(20))
+```
+
+Hver gang en funktion bliver kaldt, laver Python en *ramme* (frame) til den. Rammen holder funktionens parametre og lokale variable. Rammerne ligger oven på hinanden i *kaldstakken* (call stack), og den øverste ramme er den, der kører lige nu.
+
+| Trin | Kaldstakken (øverst først) |
+|---|---|
+| `print(describe(20))` kalder `describe` | `describe` (celsius=20) |
+| `describe` kalder `celsius_to_fahrenheit` | `celsius_to_fahrenheit` (celsius=20)<br>`describe` (celsius=20) |
+| `celsius_to_fahrenheit` returnerer 68.0 | `describe` (celsius=20, fahrenheit=68.0) |
+| `describe` returnerer teksten | (tom) |
+
+Læg mærke til to ting:
+
+- De to `celsius` er to forskellige variable, fordi de ligger i hver sin ramme.
+- Når en funktion returnerer, bliver dens ramme fjernet, og de lokale variable forsvinder.
+
+Du har allerede set kaldstakken. Når dit program går ned, skriver Python `Traceback (most recent call last)` efterfulgt af de funktioner, der lå i stakken, da fejlen skete.
+
+
+**Scope: hvor kan en variabel ses?** En variabel, der bliver oprettet inde i en funktion, er *lokal*. Den findes kun i funktionens ramme. En variabel, der bliver oprettet uden for alle funktioner, er *global*.
+
+```python
+unit = "°C"  # global variabel
+
+def show_temperature(value: float) -> None:
+    text = f"{value} {unit}"  # text er lokal, unit bliver læst fra det globale scope
+    print(text)
+
+show_temperature(12)
+print(text)  # NameError: text findes kun inde i funktionen
+```
+
+`show_temperature` behøver ikke `global unit`, fordi den kun læser `unit`. `global` er kun nødvendig, når funktionen skal ændre variablen.
+
+Når Python skal finde en variabel, leder den først lokalt i funktionen, så i en omsluttende funktion, så globalt og til sidst blandt de indbyggede navne som `print` og `len`.
+
+En funktion må gerne *læse* en global variabel. Men hvis funktionen *tildeler* en værdi til variablen, regner Python den for lokal i hele funktionen:
+
+```python
+count = 0
+
+def increase() -> None:
+    count = count + 1  # UnboundLocalError: den lokale count har ingen værdi endnu
+```
+
+Hvis du vil ændre den globale variabel, skal du skrive `global` først:
+
+```python
+count = 0
+
+def increase() -> None:
+    global count
+    count = count + 1
+```
+
+I modul 2 samler vi i stedet appens data i en klasse, så funktionerne ikke behøver globale variable.
+
+**Funktioner er værdier.** Et funktionsnavn uden parenteser er selve funktionen. Du kan gemme den i en variabel eller give den til en anden funktion som argument.
+
+```python
+def shout(text: str) -> str:
+    return text.upper() + "!"
+
+say = shout        # ingen parenteser: say er nu den samme funktion
+print(say("hej"))  # HEJ!
+```
+
+Her er en funktion, der tager en anden funktion som argument og kalder den på hver værdi i en liste:
+
+```python
+from collections.abc import Callable
+
+def apply_to_all(func: Callable[[float], float], values: list[float]) -> list[float]:
+    result = []
+    for value in values:
+        result.append(func(value))
+    return result
+
+print(apply_to_all(celsius_to_fahrenheit, [0, 20, 100]))  # [32.0, 68.0, 212.0]
+```
+
+
+`Callable[[float], float]` betyder "en funktion, der tager et `float` og returnerer et `float`".
+
+Det er præcis det, der sker med `ui.button("Sig hej", on_click=say_hello)`. Du giver funktionen til knappen, og NiceGUI kalder den senere.
+
+**Lambda: en funktion uden navn.** En lambda skrives sådan: `lambda parametre: udtryk`. Den laver en funktion, der returnerer værdien af udtrykket.
+
+| Lambda | Svarer til |
+|---|---|
+| `lambda: print("Hej")` | en funktion uden parametre, der skriver `Hej` |
+| `lambda x: x * 2` | `def double(x): return x * 2` |
+| `lambda a, b: a + b` | `def add(a, b): return a + b` |
+
+En lambda må kun indeholde ét udtryk. Du kan ikke skrive flere linjer, en løkke eller en tildeling med `=` i den. Når funktionen skal kunne mere, eller når den skal have et navn, bruger du `def`.
+
+Lambda er nyttig, når du kun skal bruge en lille funktion ét sted, typisk som argument til en anden funktion:
+
+```python
+print(apply_to_all(lambda c: c + 273.15, [0, 20]))  # [273.15, 293.15]
+
+cities = ["Aarhus", "Odense", "København", "Vejle"]
+print(sorted(cities, key=lambda city: len(city)))   # ['Vejle', 'Aarhus', 'Odense', 'København']
+```
+
+**Lambda i NiceGUI.** NiceGUI kalder en callback uden argumenter. Hvis din funktion skal have et argument, kan du pakke kaldet ind i en lambda:
+
+```python
+def show(column: str) -> None:
+    plot.figure = make_plot(weather_data, column)
+    plot.update()
+
+ui.button("Temperature", on_click=lambda: show("temperature"))
+ui.button("Rain", on_click=lambda: show("rain"))
+```
+
+`on_click=show("rain")` ville kalde `show` med det samme. `lambda: show("rain")` laver en ny funktion, og først når brugeren klikker, kalder den `show("rain")`.
+
+Hvis lambdaen har en parameter, giver NiceGUI den et objekt med oplysninger om hændelsen. For en checkbox er den nye værdi i `e.value`:
+
+```python
+ui.checkbox("Rain", on_change=lambda e: ui.notify(f"Rain: {e.value}"))
+```
+
+**Fælde: lambda i en løkke.** Her skulle hver knap vise sin egen kolonne, men begge knapper viser nedbør:
+
+```python
+for column in ["temperature", "rain"]:
+    ui.button(column, on_click=lambda: show(column))
+```
+
+En lambda husker ikke værdien af `column`, da den blev lavet. Den husker variablen og slår den op, når den bliver kaldt. Når brugeren klikker, er løkken for længst færdig, og `column` er `"rain"`. Du løser det ved at give lambdaen en parameter med en standardværdi, fordi standardværdien bliver gemt, når lambdaen bliver lavet:
+
+```python
+for column in ["temperature", "rain"]:
+    ui.button(column, on_click=lambda column=column: show(column))
+```
+
+**Læs mere**
+
+- [Function call stack](https://www.geeksforgeeks.org/c/function-call-stack-in-c/) forklarer kaldstakken. Artiklen bruger C, men ideen er den samme i Python.
+- På [Python Tutor](https://pythontutor.com/python-compiler.html#mode=edit) kan du køre et program trin for trin og se rammerne blive lagt på og fjernet fra stakken. Prøv eksemplet med `describe`.
+- [Python scope](https://www.w3schools.com/python/python_scope.asp) om lokale og globale variable.
+:::
+
 **Øvelse 1.4 – Læs lærerens kode.** Åbn `src/app_1/main.py`, og svar på spørgsmålene:
 
 1. Hvilken funktion kører, når brugeren sætter hak i en checkbox?
