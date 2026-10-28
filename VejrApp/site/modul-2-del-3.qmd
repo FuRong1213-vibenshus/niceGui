@@ -36,6 +36,46 @@ daily_df = vm.state.daily_forecast.copy()
 daily_df["date"] = daily_df["date"].dt.strftime("%a %d/%m")
 ```
 
+## Hvem forbereder data til visning?
+
+I `src/app_2/view.py` gør view mere end at vise data. Den udvælger de første tre døgn, slår kolonnenavnet op i `PARAMETERS`, omdøber kolonner, afrunder tal og laver datoer om til tekst. I MVVM er det ViewModels opgave at gøre rådata klar til visning. Derfor findes der en anden version af samme app i `src/app_2/view_clean.py` og `src/app_2/viewmodel_clean.py`. Begge versioner bruger den samme `model.py`, og appen ser ens ud.
+
+I den rene version får state nogle ekstra felter, som er klar til at blive vist:
+
+```python
+@dataclass
+class WeatherState:
+    ...
+    parameter_id: str = "temperature_2m"
+    three_day_forecast: pd.DataFrame = field(default_factory=pd.DataFrame)
+    daily_rows: list[dict] = field(default_factory=list)
+```
+
+ViewModel udfylder dem, lige efter at data er hentet:
+
+```python
+self.state.three_day_forecast = first_three_days(hourly)
+self.state.daily_rows = daily_table_rows(daily)
+```
+
+Så skal view kun tegne det, der står i state:
+
+```python
+ui.table(columns=DAILY_COLUMNS, rows=vm.state.daily_rows, row_key="date")
+```
+
+| | `view.py` + `viewmodel.py` | `view_clean.py` + `viewmodel_clean.py` |
+|---|---|---|
+| Udvælger tre døgn | View | ViewModel |
+| Afrunder og formaterer datoer | View, på en kopi | ViewModel |
+| Kolonneoverskrifter og udseende | View | View |
+| Importerer pandas | Ja | Nej |
+| Kan testes uden NiceGUI | Kun modellen | Modellen og `first_three_days()` / `daily_table_rows()` |
+
+Model forbliver uændret i begge versioner. Den returnerer rådata fra API'et, fordi "tre døgn" og "én decimal" er valg, som hører til netop denne skærm, ikke til vejrdata. Til gengæld bliver view kortere, og logikken kan testes med almindelige funktionskald.
+
+Begge versioner virker. Den første er lettere at følge, når man lærer `@ui.refreshable` for første gang, fordi alt står i én fil. Den anden er nemmere at vedligeholde, når appen vokser.
+
 ## Fejl er en del af datahentning
 
 Når et program taler med internettet, kan meget gå galt: der er ingen forbindelse, serveren svarer ikke, eller svaret mangler data. Uden fejlhåndtering stopper funktionen med en traceback i terminalen, og brugeren ser bare en app, der ikke reagerer.

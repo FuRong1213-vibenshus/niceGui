@@ -152,6 +152,21 @@ NO₂ (kvælstofdioxid) kommer især fra trafik og angives i μg/m³. Det er den
 
 Hører til [Modul 2, del 2: State, binding og events](modul-2-del-2.qmd).
 
+Nu deler du appen op i tre lag: `model.py` henter data, `viewmodel.py` holder styr på state, og `view.py` viser state til brugeren.
+
+### Sådan udvikler du view
+
+Byg view i små skridt, og kør appen efter hvert skridt:
+
+1. Opret ViewModel i `view.py`, kald metoden, der henter data, og vis en overskrift. Så ved du, at de tre filer kan finde hinanden.
+2. Tilføj byvælgeren med `ui.select`, og bind den til state. Udskriv `vm.state` i terminalen, når brugeren vælger en by, så du kan se, at state ændrer sig.
+3. Tilføj vælgeren til CO₂, AQI og NO₂ på samme måde.
+4. Tegn grafen ud fra det, der står i state.
+
+Hold view så simpel som muligt. Dens opgave er at vise state og sende brugerens valg videre til ViewModel. Når view skal bruge data i en bestemt form, for eksempel kun de første tre døgn, et kolonnenavn fra `PARAMETERS` eller afrundede tal, kan ViewModel gøre data klar og lægge resultatet i state. Så behøver view ikke importere pandas, og logikken kan testes uden NiceGUI.
+
+Se forskellen i lærerens eksempel: `src/app_2/view.py` forbereder selv data, mens `src/app_2/view_clean.py` kun tegner det, som `src/app_2/viewmodel_clean.py` har gjort klar. Forskellen er forklaret i [Modul 2, del 3](modul-2-del-3.qmd#hvem-forbereder-data-til-visning).
+
 ### Krav til trin 3
 
 - [ ] Projektet har en fil `viewmodel.py` med en dataclass til state og en ViewModel-klasse.
@@ -175,7 +190,7 @@ Hører til [Modul 2, del 3: Refresh og fejlhåndtering](modul-2-del-3.qmd).
 ### Krav til trin 4
 
 - [ ] Grafen ligger i en `@ui.refreshable` funktion, som læser fra state.
-- [ ] Appen viser også en tabel i en `@ui.refreshable` funktion. Tabellen formaterer en kopi af data.
+- [ ] Appen viser også en tabel i en `@ui.refreshable` funktion. Tabellen viser formaterede data, enten formateret på en kopi i view eller gjort klar i ViewModel. De oprindelige data i state ændres ikke.
 - [ ] Når brugeren skifter by eller parameter, opdateres både graf og tabel.
 - [ ] State har et felt `error_message`.
 - [ ] `model.py` bruger `raise_for_status()` og `timeout`, og den rejser en fejl med en klar besked, hvis svaret ikke indeholder data.
