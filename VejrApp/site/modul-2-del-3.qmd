@@ -4,7 +4,9 @@ title: "Modul 2, del 3: Refresh og fejlhåndtering"
 
 ## `@ui.refreshable` genopbygger en del af siden
 
-Nye data i state ændrer ikke en graf, der allerede er tegnet. Med `@ui.refreshable` markerer du en funktion, der bygger en del af siden, så den kan bygges igen.
+Nye data i state ændrer ikke en graf, der allerede er tegnet. 
+Med `@ui.refreshable` markerer du en funktion, der bygger en del af siden, 
+så den kan bygges igen.
 
 ```python
 @ui.refreshable
@@ -29,7 +31,8 @@ Byvælgeren står uden for den refreshable funktion, så den bliver ikke bygget 
 
 ## View formaterer en kopi
 
-Når view skal vise data pænt, for eksempel afrunde tal eller skrive datoer som tekst, gør den det på en kopi. De oprindelige data i state forbliver uændrede, så andre dele af appen stadig kan regne på dem.
+Når view skal vise data pænt, for eksempel afrunde tal eller skrive datoer som tekst, gør den det på en kopi. 
+De oprindelige data i state forbliver uændrede, så andre dele af appen stadig kan regne på dem.
 
 ```python
 daily_df = vm.state.daily_forecast.copy()

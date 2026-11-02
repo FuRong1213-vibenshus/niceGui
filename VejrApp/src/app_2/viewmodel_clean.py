@@ -40,14 +40,6 @@ class WeatherViewModel:
     def __init__(self) -> None:
         self.state = WeatherState()
 
-    def change_station(self, city: str):
-        self.state.station = city
-        self.load_forecast()
-
-    def change_parameter(self, parameter: str):
-        self.state.parameter = parameter
-        self.load_forecast()
-
     def load_forecast(self) -> None:
         self.state.is_loading = True
         self.state.error_message = ""
