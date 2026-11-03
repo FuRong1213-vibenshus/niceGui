@@ -6,10 +6,19 @@ title: "Modul 4: Udvidelse"
 
 **Fagligt fokus:**
 
-- **Data persistence:** data, der overlever en genindlæsning og en genstart af appen
-- **NiceGUI storage:** forskellen på `app.storage.user` og `app.storage.general`
-- **Repository pattern:** al læsning og skrivning af gemte data samles i én klasse
-- **Abstraktion:** resten af appen kender metoderne, men ikke hvor data bliver gemt, så lageret kan skiftes ud
+- **Data persistence:**
+    - hvorfor data i variable og state forsvinder ved en genindlæsning eller genstart
+    - hvordan data gemmes uden for programmets hukommelse
+- **NiceGUI storage:**
+    - forskellen på `app.storage.user` og `app.storage.general`
+    - hvordan et element bindes direkte til storage
+    - hvorfor `app.storage.user` kræver en `storage_secret`
+- **Repository pattern:**
+    - hvorfor læsning og skrivning af gemte data ikke skal stå spredt i hele appen
+    - hvordan al adgang til gemte data samles i én klasse
+- **Abstraktion:**
+    - at resten af appen kun kender repositoryets metoder, ikke hvor data bliver gemt
+    - hvordan lageret kan skiftes ud, fx til en JSON-fil, uden at resten af appen ændres
 
 ## Data persistence
 

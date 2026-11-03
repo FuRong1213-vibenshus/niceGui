@@ -6,10 +6,19 @@ title: "Modul 3: Pakker og navigation"
 
 **Fagligt fokus:**
 
-- **Modularisering:** et program delt op i moduler og pakker, og hvad der sker ved en `import`
-- **Afhængigheder mellem lag:** importer følger MVVM-lagene, så View kender ViewModel, og ViewModel kender Model, men ikke omvendt
-- **Navigation:** flere sider i samme app med en fælles ramme (`ui.sub_pages`)
-- **Arkitektur, der skalerer:** MVVM med flere sider, hvor hver side har sit eget View og sin egen ViewModel
+- **Modularisering:**
+    - forskellen på et modul (en fil) og en pakke (en mappe med moduler)
+    - hvad der sker ved en `import`, og hvad `if __name__ == "__main__":` gør
+    - hvordan absolutte importer skrives, og hvordan Python finder pakken
+- **Afhængigheder mellem lag:**
+    - hvordan importerne følger MVVM-lagene: View kender ViewModel, og ViewModel kender Model, men ikke omvendt
+    - hvorfor en cirkulær import får programmet til at stoppe
+- **Navigation:**
+    - hvordan en app får flere sider med `ui.sub_pages`
+    - hvordan siderne deler en fælles ramme og menu
+- **Arkitektur, der skalerer:**
+    - hvordan hver side får sit eget View og sin egen ViewModel
+    - hvordan mappestrukturen gør det let at tilføje en ny side
 
 **Lærerens eksempel:** `src/app_3/`
 

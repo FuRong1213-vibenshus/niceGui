@@ -6,12 +6,29 @@ title: "Modul 2: API og MVVM-arkitektur"
 
 **Fagligt fokus:**
 
-- **MVVM-arkitektur:** Model, View og ViewModel som tre lag med hver sin opgave
-- **Adskillelse af ansvar (separation of concerns):** hvert stykke kode har ét ansvar, så en ændring ét sted ikke ødelægger noget et andet sted
-- **Interaktion mellem systemer:** data fra et API med HTTP og JSON, og modellen som en funktion med en aftale
-- **Single source of truth (SSOT):** hver oplysning har ét hjem i state, og alt andet beregnes ud fra den
-- **State og binding:** state som `@dataclass`, og forskellen på binding og event-handler
-- **Robusthed:** `@ui.refreshable` og fejlhåndtering med `try`/`except`/`finally`, hvor hvert lag har sin opgave ved fejl
+- **MVVM-arkitektur:**
+    - hvad Model, View og ViewModel hver især har ansvar for
+    - hvilket lag der må kalde hvilket, og hvordan det ses i import-linjerne
+- **Adskillelse af ansvar (separation of concerns):**
+    - hvorfor hvert stykke kode kun skal have ét ansvar
+    - hvordan en ændring ét sted så ikke ødelægger noget et andet sted
+- **Interaktion mellem systemer:**
+    - hvordan et API bruges til at hente data med HTTP
+    - hvordan et JSON-svar læses og laves om til en DataFrame
+    - modellen som en funktion med en aftale: hvad den tager imod, og hvad den giver tilbage
+- **Single source of truth (SSOT):**
+    - hvorfor kopier af de samme data kommer ud af trit med hinanden
+    - at hver oplysning har ét hjem i state, og at alt andet beregnes ud fra den
+- **State og binding:**
+    - hvad state bruges til i MVVM, og hvorfor den ligger i ViewModel som en `@dataclass`
+    - hvordan binding forbinder et element på siden med et felt i state, og hvilken vej data går
+    - forskellen på binding og en event-handler
+    - hvordan siden opdateres ud fra state med `@ui.refreshable`
+- **Robusthed:**
+    - hvordan en `try`/`except`/`finally`-blok bliver kørt, og hvornår hver del kører
+    - hvordan Python håndterer en fejl pænt, så appen ikke går ned
+    - hvordan du selv rejser en fejl med `raise`
+    - hvordan en fejl går gennem lagene: Model rejser fejlen, ViewModel fanger den, og View viser en besked til brugeren
 
 **Lærerens eksempel:** `src/app_2/`
 

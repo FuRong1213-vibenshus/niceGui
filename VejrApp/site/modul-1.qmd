@@ -6,10 +6,19 @@ title: "Modul 1: NiceGUI basis"
 
 **Fagligt fokus:**
 
-- **Brugerflade som kode:** UI-elementer og layout med `ui.row`, `ui.column` og `ui.card`
-- **Event-handleren programmering:** programmet venter på brugeren, og en callback-funktion bliver kaldt, når der sker noget
-- **Visualisering:** fra data til graf med Plotly
-- **Opdatering af brugerfladen:** en callback 
+- **Brugerflade som kode:**
+    - hvordan hver linje med `ui.` opretter et element på siden
+    - hvordan `with` og `ui.row`, `ui.column` og `ui.card` bestemmer layoutet
+    - hvordan udseendet ændres med `.classes()`
+- **Event-drevet programmering:**
+    - hvordan programmet venter på, at brugeren gør noget
+    - hvad en callback-funktion er, og hvornår den bliver kaldt
+- **Visualisering:**
+    - hvordan data i en DataFrame bliver til en graf med Plotly
+    - hvordan grafen vises på siden
+- **Opdatering af brugerfladen:**
+    - hvordan en callback ændrer et element, der allerede står på siden
+    - hvordan grafen tegnes igen med nye data
 
 **Lærerens eksempel:** `src/app_1/main.py`
 
