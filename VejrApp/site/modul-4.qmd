@@ -16,9 +16,6 @@ title: "Modul 4: Udvidelse"
 - **Repository pattern:**
     - hvorfor læsning og skrivning af gemte data ikke skal stå spredt i hele appen
     - hvordan al adgang til gemte data samles i én klasse
-- **Abstraktion:**
-    - at resten af appen kun kender repositoryets metoder, ikke hvor data bliver gemt
-    - hvordan lageret kan skiftes ud, fx til en JSON-fil, uden at resten af appen ændres
 
 ## Data persistence
 
