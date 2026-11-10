@@ -1,0 +1,76 @@
+
+## Del 2: Navigation
+
+### Flere sider i samme app
+
+Indtil nu har hele appen været én side. Når appen får flere funktioner, deler vi den op i sider. Hver side er en funktion, der bygger sit eget indhold, og hver side ligger i sit eget modul i pakken `views`.
+
+`views/forecast.py`:
+
+```python
+from nicegui import ui
+
+def forecast_view() -> None:
+    ui.label("Prognose").classes("text-2xl font-bold")
+```
+
+`views/climate.py`:
+
+```python
+from nicegui import ui
+
+def climate_view() -> None:
+    ui.label("Klima").classes("text-2xl font-bold")
+```
+
+Der er ingen `ui.run()` i de to filer. De beskriver kun en side.
+
+### En fælles ramme med `ui.sub_pages`
+
+`main.py` importerer siderne og bygger den ramme, der er ens på alle sider: en header og en menu. `ui.sub_pages` er det område, hvor den valgte side bliver vist.
+
+```python
+from nicegui import ui
+from app_3.views.forecast import forecast_view
+from app_3.views.climate import climate_view
+
+def root() -> None:
+    with ui.header():
+        ui.label("Weather app")
+    with ui.left_drawer():
+        ui.link("Forecast", "/")
+        ui.link("Climate", "/climate")
+    ui.sub_pages({"/": forecast_view, "/climate": climate_view}).classes("w-full")
+
+if __name__ == "__main__":
+    ui.run(root, reload=False)
+```
+
+Dictionary'en forbinder en adresse med en funktion. Når brugeren klikker på et link, skifter kun indholdet i `ui.sub_pages`. Header og menu bliver stående.
+
+Læg mærke til, at der står `forecast_view` uden parenteser. Det er samme princip som med callbacks i modul 1.
+
+### MVVM med flere sider
+
+Hver side har sit eget View og sin egen ViewModel med sin egen state. Modellaget er fælles: begge sider kan bruge de samme funktioner i `services.py`.
+
+| Side | View | ViewModel | Model |
+|---|---|---|---|
+| Prognose | `views/forecast.py` | `views/forecast_viewmodel.py` | `models/services.py` |
+| Klima | `views/climate.py` | `views/climate_viewmodel.py` | `models/services.py` |
+
+Det er her, arkitekturen betaler sig. Du kan bygge en ny side uden at røre ved den gamle, og du kan genbruge modellen uden at kopiere kode.
+
+### Øvelser: navigation
+
+**Øvelse 3.6 – To sider.** Lav en lille pakke med en `main.py` og en underpakke `views`. Appen skal have en header, en menu og to sider, `Forside` og `Om`, som ligger i hvert sit modul. Hver side skal bare vise en overskrift.
+
+**Øvelse 3.7 – En tredje side.** Tilføj en side `Kontakt` til appen fra øvelse 3.6. Hvilke filer skulle du oprette, og hvilke skulle du ændre?
+
+**Øvelse 3.8 – State på tværs af sider.** Lav en tæller med knap på `Forside`. Klik nogle gange, gå til `Om`, og gå tilbage. Hvad er der sket med tallet? Forklar hvorfor ud fra, hvor ViewModel bliver oprettet. Vi løser problemet i modul 4.
+
+**Øvelse 3.9 – Læs lærerens kode.** Åbn `src/app_3/main.py` og `src/app_3/views/forecast.py`:
+
+1. Hvad er forskellen på `view.py` i `app_2` og `views/forecast.py` i `app_3`?
+2. Hvorfor er der ingen `ui.run()` i `forecast.py`?
+3. Hvilke filer skulle du oprette og ændre for at tilføje en side mere?

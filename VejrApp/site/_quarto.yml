@@ -29,8 +29,13 @@ website:
             href: modul-2-del-2.qmd
           - text: "Del 3: Refresh og fejlhåndtering"
             href: modul-2-del-3.qmd
-      - text: "Modul 3: Pakker og navigation"
+      - section: "Modul 3: Pakker og navigation"
         href: modul-3.qmd
+        contents:
+          - text: "Del 1: Moduler og pakker"
+            href: modul-3-del-1.qmd
+          - text: "Del 2: Pages og Navigation"
+            href: modul-3-del-2.qmd
       - text: "Modul 4: Udvidelse"
         href: modul-4.qmd
       - text: "---"
