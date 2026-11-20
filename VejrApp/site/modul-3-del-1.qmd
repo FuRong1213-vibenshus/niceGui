@@ -45,7 +45,7 @@ print(area(4, 5))
 | `python geometry.py` | `geometry.py bliver indlæst` og `Test: 6` |
 | `python main.py` | `geometry.py bliver indlæst` og `20` |
 
-Linjen `if __name__ == "__main__":` betyder "kun hvis denne fil er den, der blev startet". Koden under den kører ikke, når filen bliver importeret af en anden fil.
+Linjen `if __name__ == "__main__":` betyder "kun hvis denne fil er den, der blev startet". Koden under den kører ikke, når filen bliver importeret af en anden fil. Læs mere i [Real Pythons artikel om `if __name__ == "__main__"`](https://realpython.com/if-name-main-python/).
 
 Det bruger vi to steder:
 
@@ -83,6 +83,8 @@ Sammenlign med `app_2`, hvor alle filer lå i samme mappe:
 | `model.py` | `models/services.py` |
 | `viewmodel.py` | `views/forecast_viewmodel.py` |
 | `view.py` | `views/forecast.py` og `main.py` |
+
+Læs mere om moduler, pakker og `__init__.py` i [Real Pythons introduktion til moduler og pakker](https://realpython.com/python-modules-packages/).
 
 ### Import mellem pakker
 

@@ -34,6 +34,8 @@ title: "Materialer"
 
 - [Lambda-udtryk](https://docs.python.org/3/tutorial/controlflow.html#lambda-expressions)
 - [Moduler](https://docs.python.org/3/tutorial/modules.html)
+- [Moduler og pakker (Real Python)](https://realpython.com/python-modules-packages/)
+- [`if __name__ == "__main__"` (Real Python)](https://realpython.com/if-name-main-python/)
 - [Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html)
 - [Errors and exceptions (GeeksforGeeks)](https://www.geeksforgeeks.org/python/errors-and-exceptions-in-python/)
 - [try/except (GeeksforGeeks)](https://www.geeksforgeeks.org/python/python-try-except/)
